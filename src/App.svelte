@@ -1,10 +1,10 @@
 <script lang="ts">
-    import { BPK1File } from "./lib/bpk1";
+    import { Letter } from "./lib/bpk1";
 
-    let reader: Promise<BPK1File> | undefined = $state();
+    let reader: Promise<Letter> | undefined = $state();
 
     function fileSelected(e: Event) {
-        reader = new Promise<BPK1File>((resolve, reject) => {
+        reader = new Promise<Letter>((resolve, reject) => {
             let file = (e.target as HTMLInputElement | null)?.files?.[0];
             if (!file) {
                 reject("Cannot load file");
@@ -20,7 +20,7 @@
                     reject("Cannot read file content");
                     return;
                 }
-                resolve(new BPK1File(content));
+                resolve(new Letter(content));
             };
         });
     }
@@ -68,6 +68,21 @@
                             .sender?.studioData}&width=128&type=face"
                         alt=""
                     />
+                </div>
+            </div>
+
+            <div class="sector">
+                <div class="">
+                    <h1>Stationery</h1>
+                    <p>Name: {file.stationery?.name}</p>
+                    <div class="thumbs">
+                        {#each file.stationery?.image ?? [] as stationery}
+                            <img
+                                src={URL.createObjectURL(stationery)}
+                                alt={""}
+                            />
+                        {/each}
+                    </div>
                 </div>
             </div>
         {/await}

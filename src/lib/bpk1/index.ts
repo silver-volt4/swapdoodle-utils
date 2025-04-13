@@ -11,12 +11,20 @@ class BPK1Error extends Error {
 // ASCII BPK1
 const MAGIC_BPK1 = 827019330;
 
-export class BPK1File {
-    public thumbnails: Blob[] = [];
-    public sender?: MiiData
+function readString(offset: number, data: DataView, limit: number = Infinity): string {
+    let name = "";
+    for (let i = 0; i < limit; i++) {
+        let char = data.getUint8(offset + i);
+        if (char == 0) break;
+        name += String.fromCharCode(char);
+    }
+    return name;
+}
+
+abstract class BPK1File {
     public data: DataView
 
-    constructor(file: ArrayBuffer) {
+    constructor(file: ArrayBufferLike) {
         let data = new DataView<ArrayBufferLike>(file);
         let magic = data.getUint32(0, true);
 
@@ -36,46 +44,87 @@ export class BPK1File {
             }
         }
 
-        let blocks = data.getUint32(4, true);
+        this.data = data;
+    }
+
+    protected process() {
+        let blocks = this.data.getUint32(4, true);
         console.info(`BPK1: Read ${blocks} blocks`);
         let pos = 0x40;
 
         for (let _ = 0; _ < blocks; _++) {
-            let offset = data.getUint32(pos, true);
+            let offset = this.data.getUint32(pos, true);
             pos += 4;
-            let size = data.getUint32(pos, true);
+            let size = this.data.getUint32(pos, true);
             pos += 4;
-            let checksum = data.getUint32(pos, true);
+            let checksum = this.data.getUint32(pos, true);
             pos += 4;
-            let blockName = this.readBlockName(pos, data);
+            let blockName = readString(pos, this.data);
             pos += 8;
-            this.processBlock(blockName, data.buffer.slice(offset, offset + size));
+            this.processBlock(blockName, this.data.buffer.slice(offset, offset + size));
         }
-
-        this.data = data;
     }
 
-    private readBlockName(offset: number, data: DataView): string {
-        let name = "";
-        for (let i = 0; i < 8; i++) {
-            let char = data.getUint8(offset + i);
-            if (char == 0) break;
-            name += String.fromCharCode(char);
-        }
-        return name;
+
+
+    protected abstract processBlock(blockName: string, data: ArrayBufferLike): void;
+}
+
+
+export class Letter extends BPK1File {
+    public thumbnails: Blob[] = [];
+    public sender?: MiiData
+    public stationery?: Stationery
+
+    constructor(file: ArrayBufferLike) {
+        super(file);
+        this.process();
     }
 
-    private processBlock(blockName: string, data: ArrayBufferLike) {
-        console.info(`BPK1: Process block ${blockName}`)
+    protected processBlock(blockName: string, data: ArrayBufferLike) {
+        console.info(`Letter: Process block ${blockName}`)
+
         if (blockName == "THUMB2") {
             this.thumbnails.push(
                 new Blob([new Uint8Array(data)], { type: "image/jpeg" })
             );
         }
-        if (blockName == "MIISTD1") {
+
+        else if (blockName == "MIISTD1") {
             this.sender = miiFileRead(
                 new Uint8Array(data)
             );
+        }
+
+        else if (blockName == "STATIN1") {
+            this.stationery = new Stationery(data);
+        }
+    }
+}
+
+export class Stationery extends BPK1File {
+    name?: string;
+    image: Blob[] = [];
+    //mask?: Blob;
+
+    constructor(file: ArrayBufferLike) {
+        super(file);
+        this.process();
+    }
+
+    protected processBlock(blockName: string, data: ArrayBufferLike) {
+        console.info(`Stationery: Process block ${blockName}`)
+
+        if (blockName === "STAHED1") {
+            this.name = readString(0, new DataView(data), 0x80)
+        }
+        else if (blockName === "STBARD1") {
+            this.image.push(
+                new Blob([new Uint8Array(data)], { type: "image/jpeg" })
+            )
+        }
+        else if (blockName === "STMASK1") {
+            console.log(new Uint8Array(data));
         }
     }
 }
