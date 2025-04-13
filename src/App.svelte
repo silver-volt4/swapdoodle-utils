@@ -24,6 +24,14 @@
             };
         });
     }
+
+    function download(data: DataView) {
+        var bb = new Blob([data], { type: "application/octet-stream" });
+        var a = document.createElement("a");
+        a.download = "letter.bin";
+        a.href = window.URL.createObjectURL(bb);
+        a.click();
+    }
 </script>
 
 <input type="file" onchange={fileSelected} />
@@ -31,6 +39,7 @@
 <div>
     {#if reader}
         {#await reader then file}
+            <button onclick={() => download(file.data)}>download</button>
             <div class="sector">
                 <h1>Thumbnails</h1>
                 <div class="thumbs">

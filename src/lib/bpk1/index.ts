@@ -1,4 +1,5 @@
 import "./lzss"
+import decompress from "./lzss";
 import { miiFileRead, type MiiData } from "./miidata";
 
 class BPK1Error extends Error {
@@ -7,19 +8,32 @@ class BPK1Error extends Error {
     }
 }
 
-class BPK1Thumb {
-
-}
+// ASCII BPK1
+const MAGIC_BPK1 = 827019330;
 
 export class BPK1File {
     public thumbnails: Blob[] = [];
     public sender?: MiiData
+    public data: DataView
 
     constructor(file: ArrayBuffer) {
-        let data = new DataView(file);
+        let data = new DataView<ArrayBufferLike>(file);
         let magic = data.getUint32(0, true);
-        if (magic !== 827019330) { // ASCII BPK1
-            throw new BPK1Error(`Cannot extract: Bad magic (got ${magic})`);
+
+        if (magic !== MAGIC_BPK1) {
+            // Try lzss
+            try {
+                console.warn("BPK1: Magic mismatched, trying to decompress the file")
+                data = new DataView(decompress(new Uint8Array(file)).buffer);
+                console.info("BPK1: Decompress successful");
+            }
+            catch {
+                throw new BPK1Error(`Cannot extract: Bad magic (got ${magic})`);
+            }
+            magic = data.getUint32(0, true);
+            if (magic !== MAGIC_BPK1) {
+                throw new BPK1Error(`Cannot extract: Bad magic (got ${magic})`);
+            }
         }
 
         let blocks = data.getUint32(4, true);
@@ -35,8 +49,10 @@ export class BPK1File {
             pos += 4;
             let blockName = this.readBlockName(pos, data);
             pos += 8;
-            this.processBlock(blockName, file.slice(offset, offset + size));
+            this.processBlock(blockName, data.buffer.slice(offset, offset + size));
         }
+
+        this.data = data;
     }
 
     private readBlockName(offset: number, data: DataView): string {
@@ -49,11 +65,11 @@ export class BPK1File {
         return name;
     }
 
-    private processBlock(blockName: string, data: ArrayBuffer) {
+    private processBlock(blockName: string, data: ArrayBufferLike) {
         console.info(`BPK1: Process block ${blockName}`)
         if (blockName == "THUMB2") {
             this.thumbnails.push(
-                new Blob([data], { type: "image/jpeg" })
+                new Blob([new Uint8Array(data)], { type: "image/jpeg" })
             );
         }
         if (blockName == "MIISTD1") {
