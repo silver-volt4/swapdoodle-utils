@@ -1,5 +1,5 @@
-import lzss from "./lzss.wasm?init";
+import init, { decompress } from "./lzss/lzss_wasm";
 
-lzss().then((instance) => {
-    console.log(instance.exports)
-})
+await init();
+
+export default decompress;
