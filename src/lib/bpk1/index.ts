@@ -1,5 +1,5 @@
 import "./lzss"
-import { miiFileRead } from "./miidata";
+import { miiFileRead, type MiiData } from "./miidata";
 
 class BPK1Error extends Error {
     constructor(message: string) {
@@ -13,6 +13,7 @@ class BPK1Thumb {
 
 export class BPK1File {
     public thumbnails: Blob[] = [];
+    public sender?: MiiData
 
     constructor(file: ArrayBuffer) {
         let data = new DataView(file);
@@ -56,9 +57,9 @@ export class BPK1File {
             );
         }
         if (blockName == "MIISTD1") {
-            console.log(miiFileRead(
-                new Uint8Array(data.slice(0, 0x5C))
-            ))
+            this.sender = miiFileRead(
+                new Uint8Array(data)
+            );
         }
     }
 }

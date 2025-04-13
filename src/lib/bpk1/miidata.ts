@@ -1,8 +1,107 @@
-const CTR_MII_FILE_SIZE = 0x5C;
+/**
+ * 3DS Mii data to Mii Studio data converter
+ * Adapted from https://github.com/kazuki-4ys/kazuki-4ys.github.io/blob/master/web_apps/MiiInfoEditorCTR/mii.js
+ */
+
 const MII_NAME_LENGTH = 10;
-const CONSOLE_ID_LENGTH = 0x8;
-const MII_ID_LENGTH = 0x4;
-const MAC_ADDR_LENGTH = 0x6;
+
+export type MiiData = {
+    name: string,
+    creator: string,
+    studioData: string
+}
+
+export function miiFileRead(buf: Uint8Array): MiiData {
+    let tmpU32, tmpU16;
+    let studioData = new Uint8Array([0x08, 0x00, 0x40, 0x03, 0x08, 0x04, 0x04, 0x02, 0x02, 0x0c, 0x03, 0x01, 0x06, 0x04, 0x06, 0x02, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x04, 0x00, 0x0a, 0x01, 0x00, 0x21, 0x40, 0x04, 0x00, 0x02, 0x14, 0x03, 0x13, 0x04, 0x17, 0x0d, 0x04, 0x00, 0x0a, 0x04, 0x01, 0x09])
+
+    studioData[0x16] = buf[0x18] & 1;
+    studioData[0x15] = (buf[0x19] >>> 2) & 0xf;
+    studioData[0x1E] = buf[0x2e];
+    studioData[2] = buf[0x2f];
+    studioData[0x13] = (buf[0x30] >>> 1) & 0xF;
+    studioData[0x11] = buf[0x30] >>> 5;
+    studioData[0x14] = buf[0x31] & 0xF;
+    studioData[0x12] = buf[0x31] >>> 4;
+    studioData[0x1D] = buf[0x32];
+    studioData[0x1B] = buf[0x33] & 7;
+    if (!studioData[0x1B]) studioData[0x1B] = 8;
+    studioData[0x1C] = (buf[0x33] >>> 3) & 1;
+
+    tmpU32 = bufToUint32(buf, 0x34);
+    studioData[7] = tmpU32 & 0x3F;
+    studioData[4] = ((tmpU32 >>> 6) & 7) + 8;
+    studioData[6] = (tmpU32 >>> 9) & 0xF;
+    studioData[3] = (tmpU32 >>> 13) & 7;
+    studioData[5] = (tmpU32 >>> 16) & 0x1F;
+    studioData[8] = (tmpU32 >>> 21) & 0xF;
+    studioData[9] = (tmpU32 >>> 25) & 0x1F;
+
+    tmpU32 = bufToUint32(buf, 0x38);
+    studioData[0xE] = tmpU32 & 0x1F;
+    studioData[0xB] = (tmpU32 >>> 5) & 7;
+    if (!studioData[0xB]) studioData[0xB] = 8;
+    studioData[0xD] = (tmpU32 >>> 8) & 0xF;
+    studioData[0xA] = (tmpU32 >>> 12) & 7;
+    studioData[0xC] = (tmpU32 >>> 16) & 0xF;
+    studioData[0xF] = (tmpU32 >>> 21) & 0xF;
+    studioData[0x10] = (tmpU32 >>> 25) & 0x1F;
+
+    tmpU16 = bufToUint16(buf, 0x3C);
+    studioData[0x2C] = tmpU16 & 0x1F;
+    studioData[0x2B] = (tmpU16 >>> 5) & 0xF;
+    studioData[0x2D] = (tmpU16 >>> 9) & 0x1F;
+
+    tmpU16 = bufToUint16(buf, 0x3E);
+    studioData[0x26] = tmpU16 & 0x3F;
+    studioData[0x24] = 0;
+    if (studioData[0x24] < 4) {
+        studioData[0x24] += 19;
+    } else {
+        studioData[0x24] = 0;
+    }
+    studioData[0x25] = (tmpU16 >>> 9) & 0xF;
+    studioData[0x23] = (tmpU16 >>> 13) & 7;
+
+    tmpU16 = bufToUint16(buf, 0x40);
+    studioData[0x27] = tmpU16 & 0x1F;
+    studioData[0x29] = (tmpU16 >>> 5) & 7;
+
+    tmpU16 = bufToUint16(buf, 0x42);
+    studioData[1] = tmpU16 & 7;
+    studioData[0] = (tmpU16 >>> 3) & 7;
+    if (!studioData[0]) studioData[0] = 8;
+    studioData[0x28] = (tmpU16 >>> 6) & 0xF;
+    studioData[0x2A] = (tmpU16 >>> 10) & 0x1F;
+
+
+    tmpU16 = bufToUint16(buf, 0x44);
+    studioData[0x19] = tmpU16 & 0xF;
+    studioData[0x17] = (tmpU16 >>> 4) & 7;
+    if (!studioData[0x17]) {
+        studioData[0x17] = 8;
+    } else if (studioData[0x17] < 6) {
+        studioData[0x17] += 13;
+    } else {
+        studioData[0x17] = 0;
+    }
+    studioData[0x18] = (tmpU16 >>> 7) & 0xF;
+    studioData[0x1A] = (tmpU16 >>> 11) & 0x1F;
+
+    tmpU16 = bufToUint16(buf, 0x46);
+    studioData[0x20] = tmpU16 & 1;
+    studioData[0x1F] = (tmpU16 >>> 1) & 0xF;
+    studioData[0x21] = (tmpU16 >>> 5) & 0x1F;
+    studioData[0x22] = (tmpU16 >>> 10) & 0x1F;
+
+    let miiName = bufToMiiString(buf, 0x1A);
+    let creatorName = bufToMiiString(buf, 0x48);
+    return {
+        name: miiName,
+        creator: creatorName,
+        studioData: encodeStudio(studioData)
+    }
+}
 
 function encodeStudio(studio: Uint8Array): string {
     let n = 0;
@@ -16,181 +115,19 @@ function encodeStudio(studio: Uint8Array): string {
     return dest;
 }
 
-export function miiFileRead(buf: Uint8Array) {
-    let tmpU32, tmpU16;
-    if (buf.length === CTR_MII_FILE_SIZE) {
-        editMii.unknown = buf[0];
-        editMii.allowCopying = getBoolean(buf[0x1] & 1);
-        editMii.profanityFlag = getBoolean((buf[0x1] >>> 1) & 1);
-        editMii.regionLock = (buf[0x1] >>> 2) & 3;
-        editMii.characterSet = (buf[0x1] >>> 4) & 3;
-        editMii.pageIndex = buf[0x2] & 0xf;
-        editMii.slotIndex = (buf[0x2] >>> 4) & 0xf;
-        editMii.version = (buf[0x3] >>> 4) & 0x7;
-        for (let i = 0; i < CONSOLE_ID_LENGTH; i++) {
-            editMii.consoleID[i] = buf[0x4 + i];
-        }
-        for (let i = 0; i < MII_ID_LENGTH; i++) {
-            editMii.miiID[i] = buf[0xc + i];
-        }
-        for (let i = 0; i < MAC_ADDR_LENGTH; i++) {
-            editMii.creatorMAC[i] = buf[0x10 + i];
-        }
-        editMii.isGirl = getBoolean(buf[0x18] & 1);
-        editMii.month = (buf[0x18] >>> 1) & 0xf;
-        editMii.day = ((buf[0x19] & 3) << 3) + (buf[0x18] >>> 5);
-        editMii.favColor = (buf[0x19] >>> 2) & 0xf;
-        editMii.isFavorite = getBoolean((buf[0x19] >>> 6) & 1);
-        editMii.name = bufToUTF16String(buf, 0x1A, MII_NAME_LENGTH, true);
-        editMii.height = buf[0x2e];
-        editMii.weight = buf[0x2f];
-        editMii.sharing = !(getBoolean(buf[0x30] & 1));
-        editMii.faceShape = (buf[0x30] >>> 1) & 0xF;
-        editMii.skinColor = buf[0x30] >>> 5;
-        editMii.wrinkles = buf[0x31] & 0xF;
-        editMii.makeup = buf[0x31] >>> 4;
-        editMii.hairStyle = buf[0x32];
-        editMii.hairColor = buf[0x33] & 7;
-        editMii.flipHair = (buf[0x33] >>> 3) & 1;
-        tmpU32 = bufToUint32(buf, 0x34, true);
-        editMii.eyeStyle = tmpU32 & 0x3F;
-        editMii.eyeColor = (tmpU32 >>> 6) & 7;
-        editMii.eyeScale = (tmpU32 >>> 9) & 0xF;
-        editMii.eyeYscale = (tmpU32 >>> 13) & 7;
-        editMii.eyeRotation = (tmpU32 >>> 16) & 0x1F;
-        editMii.eyeXspacing = (tmpU32 >>> 21) & 0xF;
-        editMii.eyeYposition = (tmpU32 >>> 25) & 0x1F;
-        tmpU32 = bufToUint32(buf, 0x38, true);
-        editMii.eyebrowStyle = tmpU32 & 0x1F;
-        editMii.eyebrowColor = (tmpU32 >>> 5) & 7;
-        editMii.eyebrowScale = (tmpU32 >>> 8) & 0xF;
-        editMii.eyebrowYscale = (tmpU32 >>> 12) & 7;
-        editMii.eyebrowRotation = (tmpU32 >>> 16) & 0xF;
-        editMii.eyebrowXspacing = (tmpU32 >>> 21) & 0xF;
-        editMii.eyebrowYposition = (tmpU32 >>> 25) & 0x1F;
-        tmpU16 = bufToUint16(buf, 0x3C, true);
-        editMii.noseStyle = tmpU16 & 0x1F;
-        editMii.noseScale = (tmpU16 >>> 5) & 0xF;
-        editMii.noseYposition = (tmpU16 >>> 9) & 0x1F;
-        tmpU16 = bufToUint16(buf, 0x3E, true);
-        editMii.mouseStyle = tmpU16 & 0x3F;
-        editMii.mouseColor = (tmpU16 >>> 6) & 7;
-        editMii.mouseScale = (tmpU16 >>> 9) & 0xF;
-        editMii.mouseYscale = (tmpU16 >>> 13) & 7;
-        tmpU16 = bufToUint16(buf, 0x40, true);
-        editMii.mouseYposition = tmpU16 & 0x1F;
-        editMii.mustacheStyle = (tmpU16 >>> 5) & 7;
-        tmpU16 = bufToUint16(buf, 0x42, true);
-        editMii.beardStyle = tmpU16 & 7;
-        editMii.beardColor = (tmpU16 >>> 3) & 7;
-        editMii.mustacheScale = (tmpU16 >>> 6) & 0xF;
-        editMii.mustacheYposition = (tmpU16 >>> 10) & 0x1F;
-        tmpU16 = bufToUint16(buf, 0x44, true);
-        editMii.glassesStyle = tmpU16 & 0xF;
-        editMii.glassesColor = (tmpU16 >>> 4) & 7;
-        editMii.glassesScale = (tmpU16 >>> 7) & 0xF;
-        editMii.glassesYposition = (tmpU16 >>> 11) & 0x1F;
-        tmpU16 = bufToUint16(buf, 0x46, true);
-        editMii.enableMole = tmpU16 & 1;
-        editMii.moleScale = (tmpU16 >>> 1) & 0xF;
-        editMii.moleXposition = (tmpU16 >>> 5) & 0x1F;
-        editMii.moleYposition = (tmpU16 >>> 10) & 0x1F;
-        editMii.creatorName = bufToUTF16String(buf, 0x48, MII_NAME_LENGTH, true);
-    }
 
-    let studioData = new Uint8Array([0x08, 0x00, 0x40, 0x03, 0x08, 0x04, 0x04, 0x02, 0x02, 0x0c, 0x03, 0x01, 0x06, 0x04, 0x06, 0x02, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x04, 0x00, 0x0a, 0x01, 0x00, 0x21, 0x40, 0x04, 0x00, 0x02, 0x14, 0x03, 0x13, 0x04, 0x17, 0x0d, 0x04, 0x00, 0x0a, 0x04, 0x01, 0x09])
-
-    studioData[0x16] = getInt(editMii.isGirl);
-    studioData[0x15] = editMii.favColor;
-    studioData[0x1E] = editMii.height;
-    studioData[2] = editMii.weight;
-    studioData[0x13] = editMii.faceShape;
-    studioData[0x11] = editMii.skinColor;
-    studioData[0x14] = editMii.wrinkles;
-    studioData[0x12] = editMii.makeup;
-    studioData[0x1D] = editMii.hairStyle;
-    studioData[0x1B] = editMii.hairColor;
-    if (!studioData[0x1B]) studioData[0x1B] = 8;
-    studioData[0x1C] = editMii.flipHair;
-    studioData[7] = editMii.eyeStyle;
-    studioData[4] = editMii.eyeColor + 8;
-    studioData[6] = editMii.eyeScale;
-    studioData[3] = editMii.eyeYscale;
-    studioData[5] = editMii.eyeRotation;
-    studioData[8] = editMii.eyeXspacing;
-    studioData[9] = editMii.eyeYposition;
-    studioData[0xE] = editMii.eyebrowStyle;
-    studioData[0xB] = editMii.eyebrowColor;
-    if (!studioData[0xB]) studioData[0xB] = 8;
-    studioData[0xD] = editMii.eyebrowScale;
-    studioData[0xA] = editMii.eyebrowYscale;
-    studioData[0xC] = editMii.eyebrowRotation;
-    studioData[0xF] = editMii.eyebrowXspacing;
-    studioData[0x10] = editMii.eyebrowYposition;
-    studioData[0x2C] = editMii.noseStyle;
-    studioData[0x2B] = editMii.noseScale;
-    studioData[0x2D] = editMii.noseYposition;
-    studioData[0x26] = editMii.mouseStyle;
-    studioData[0x24] = editMii.mouseColor;
-    if (studioData[0x24] < 4) {
-        studioData[0x24] += 19;
-    } else {
-        studioData[0x24] = 0;
-    }
-    studioData[0x25] = editMii.mouseScale;
-    studioData[0x23] = editMii.mouseYscale;
-    studioData[0x27] = editMii.mouseYposition;
-    studioData[0x29] = editMii.mustacheStyle;
-    studioData[1] = editMii.beardStyle;
-    studioData[0] = editMii.beardColor;
-    if (!studioData[0]) studioData[0] = 8;
-    studioData[0x28] = editMii.mustacheScale;
-    studioData[0x2A] = editMii.mustacheYposition;
-    studioData[0x19] = editMii.glassesStyle;
-    studioData[0x17] = editMii.glassesColor;
-    if (!studioData[0x17]) {
-        studioData[0x17] = 8;
-    } else if (studioData[0x17] < 6) {
-        studioData[0x17] += 13;
-    } else {
-        studioData[0x17] = 0;
-    }
-    studioData[0x18] = editMii.glassesScale;
-    studioData[0x1A] = editMii.glassesYposition;
-    studioData[0x20] = editMii.enableMole;
-    studioData[0x1F] = editMii.moleScale;
-    studioData[0x21] = editMii.moleXposition;
-    studioData[0x22] = editMii.moleYposition;
-
-    return encodeStudio(studioData);
+function bufToUint16(data: Uint8Array, addr: number) {
+    return (data[addr + 1] << 8) + data[addr];
 }
 
-function getBoolean(int) {
-    if (int === 1) return true;
-    return false;
+function bufToUint32(data: Uint8Array, addr: number) {
+    return (data[addr + 3] << 24) + (data[addr + 2] << 16) + (data[addr + 1] << 8) + data[addr];
 }
 
-function getInt(boolean: Boolean) {
-    if (boolean === true) return 1;
-    return 0;
-}
-
-function bufToUint16(data, addr, isLE) {
-    if (isLE) return (data[addr + 1] << 8) + data[addr];
-    return (data[addr] << 8) + data[addr + 1];
-}
-
-function bufToUint32(data, addr, isLE) {
-    if (isLE) return (data[addr + 3] << 24) + (data[addr + 2] << 16) + (data[addr + 1] << 8) + data[addr];
-    return (data[addr] << 24) + (data[addr + 1] << 16) + (data[addr + 2] << 8) + data[addr + 3];
-}
-
-
-function bufToUTF16String(data, addr, length, isLE) {
+function bufToMiiString(data: Uint8Array, addr: number) {
     let s = '';
-    let tmpU16;
-    for (let i = 0; i < length; i++) {
-        tmpU16 = bufToUint16(data, addr + i * 2, isLE);
+    for (let i = 0; i < MII_NAME_LENGTH; i++) {
+        let tmpU16 = bufToUint16(data, addr + i * 2);
         if (tmpU16 === 0) break;
         s += String.fromCharCode(tmpU16);
     }

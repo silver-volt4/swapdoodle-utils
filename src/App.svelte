@@ -31,19 +31,35 @@
 <div>
     {#if reader}
         {#await reader then file}
-            <div class="sector thumbs">
-                {#each file.thumbnails as thumbnail, i}
-                    {@const title = `Thumbnail no. ${i + 1}`}
-                    <div class="thumb">
-                        <p>
-                            <b>{title}</b>
-                        </p>
-                        <img
-                            src={URL.createObjectURL(thumbnail)}
-                            alt={title}
-                        />
-                    </div>
-                {/each}
+            <div class="sector">
+                <h1>Thumbnails</h1>
+                <div class="thumbs">
+                    {#each file.thumbnails as thumbnail, i}
+                        {@const title = `Thumbnail no. ${i + 1}`}
+                        <div class="thumb">
+                            <p>
+                                <b>{title}</b>
+                            </p>
+                            <img
+                                src={URL.createObjectURL(thumbnail)}
+                                alt={title}
+                            />
+                        </div>
+                    {/each}
+                </div>
+            </div>
+
+            <div class="sector">
+                <div class="mii">
+                    <h1>Sender's Mii</h1>
+                    <p>Mii Name: {file.sender?.name}</p>
+                    <p>Mii creator's name: {file.sender?.creator}</p>
+                    <img
+                        src="https://studio.mii.nintendo.com/miis/image.png?data={file
+                            .sender?.studioData}&width=128&type=face"
+                        alt=""
+                    />
+                </div>
             </div>
         {/await}
     {/if}
@@ -62,5 +78,10 @@
     .thumb img {
         height: 128px;
         width: 128px;
+    }
+
+    .mii img {
+        height: 64px;
+        width: 64px;
     }
 </style>
