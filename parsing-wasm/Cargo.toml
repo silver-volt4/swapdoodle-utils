@@ -1,5 +1,5 @@
 [package]
-name = "lzss-wasm"
+name = "parsing-wasm"
 version = "0.1.0"
 edition = "2024"
 
@@ -7,5 +7,5 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
-rust_lzss = "0.1.1"
+parsing = { path = "../parsing" }
 wasm-bindgen = "0.2.100"
