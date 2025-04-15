@@ -1,7 +1,12 @@
-use std::time::{Duration, SystemTime};
+use std::{
+    error::Error,
+    fmt::Display,
+    time::{Duration, SystemTime},
+};
 
 use crate::bits::PickBit;
 
+#[derive(Debug)]
 pub struct MiiData {
     pub copying_allowed: bool,
     pub region_lock: MiiRegionLock,
@@ -25,12 +30,27 @@ pub struct MiiData {
     pub creator_name: String,
 }
 
+#[derive(Debug)]
 pub enum MiiDeserializeError {
     UnknownVersion(u8),
     UnknownSourceDevice(u8),
     InvalidBirthdayMonth(u8),
     InvalidFavoriteColor(u8),
 }
+
+impl Display for MiiDeserializeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use MiiDeserializeError::*;
+        match self {
+            UnknownVersion(v) => write!(f, "Unknown format version ({v})"),
+            UnknownSourceDevice(v) => write!(f, "Unknown Mii origin device ({v})"),
+            InvalidBirthdayMonth(v) => write!(f, "Invalid birthday month ({v})"),
+            InvalidFavoriteColor(v) => write!(f, "Invalid favorite color ({v})"),
+        }
+    }
+}
+
+impl Error for MiiDeserializeError {}
 
 fn name_from_bytes(bytes: [u8; 20]) -> String {
     let name: Vec<u16> = bytes
@@ -41,10 +61,18 @@ fn name_from_bytes(bytes: [u8; 20]) -> String {
     String::from_utf16_lossy(&name)
 }
 
-impl TryFrom<[u8; 0x5C]> for MiiData {
+pub type MiiDataBytes = [u8; 0x5C];
+
+impl MiiData {
+    pub fn from_bytes(bytes: MiiDataBytes) -> Result<Self, MiiDeserializeError> {
+        Self::try_from(bytes)
+    }
+}
+
+impl TryFrom<MiiDataBytes> for MiiData {
     type Error = MiiDeserializeError;
 
-    fn try_from(value: [u8; 0x5C]) -> Result<Self, Self::Error> {
+    fn try_from(value: MiiDataBytes) -> Result<Self, Self::Error> {
         let raw = MiiDataRaw::from(value);
 
         if raw.version != 3 {
@@ -96,8 +124,8 @@ impl TryFrom<[u8; 0x5C]> for MiiData {
         let glasses = u16::from_le_bytes(raw.glasses);
         let mole = u16::from_le_bytes(raw.mole);
         let mii_features = MiiFeatures {
-            width: raw.width_height[0],
-            height: raw.width_height[1],
+            width: raw.width_height[1],
+            height: raw.width_height[0],
 
             face_shape: raw.sharing_face_shape_skin_color.pick_bits(1..5),
             skin_color: raw.sharing_face_shape_skin_color.pick_bits(5..8),
@@ -181,9 +209,90 @@ impl TryFrom<[u8; 0x5C]> for MiiData {
     }
 }
 
+impl MiiData {
+    // Used https://github.com/kazuki-4ys/kazuki-4ys.github.io/blob/master/web_apps/MiiInfoEditorCTR/mii.js
+    // as a reference for this
+    pub fn get_mii_studio_url(&self) -> String {
+        fn or_eight(n: u8) -> u8 {
+            if n == 0 { 8 } else { n }
+        }
+
+        let features = &self.mii_features;
+        let studio_data: [u8; 46] = [
+            or_eight(features.beard_color),
+            features.beard_style,
+            features.width,
+            features.eye_scale_y,
+            features.eye_color + 8,
+            features.eye_rotation,
+            features.eye_scale,
+            features.eye_style,
+            features.eye_spacing_x,
+            features.eye_position_y,
+            features.eyebrow_scale_y,
+            or_eight(features.eyebrow_color),
+            features.eyebrow_rotation,
+            features.eyebrow_scale,
+            features.eyebrow_style,
+            features.eyebrow_spacing_x,
+            features.eyebrow_position_y,
+            features.skin_color,
+            features.makeup,
+            features.face_shape,
+            features.wrinkles,
+            self.favorite_color as u8,
+            self.mii_gender as u8,
+            match features.glasses_color {
+                0 => 8,
+                6.. => 0, // Invalid value?
+                c => c + 13,
+            },
+            features.glasses_scale,
+            features.glasses_style,
+            features.glasses_position_y,
+            or_eight(features.hair_color),
+            features.flip_hair as u8,
+            features.hair_style,
+            features.height,
+            features.mole_scale,
+            features.mole_enabled as u8,
+            features.mole_position_x,
+            features.mole_position_y,
+            features.mouth_scale_y,
+            if features.mouth_color < 4 {
+                features.mouth_color + 19
+            } else {
+                0
+            },
+            features.mouth_scale,
+            features.mouth_style,
+            features.mouth_position_y,
+            features.mustache_scale,
+            features.mustache_style,
+            features.mustache_position_y,
+            features.nose_scale,
+            features.nose_style,
+            features.nose_position_y,
+        ];
+
+        let hex_string: String = studio_data
+            .into_iter()
+            .fold((0u8, "00".to_string()), |(last_encoded, hex_string), v| {
+                let encoded = (v ^ last_encoded).wrapping_add(7);
+                (encoded, format!("{hex_string}{encoded:02x}"))
+            })
+            .1;
+
+        format!(
+            "https://studio.mii.nintendo.com/miis/image.png?data={hex_string}&width=512&type=face"
+        )
+    }
+}
+
 macro_rules! n_enum {
     ($name: ident; $($i: ident = $n: expr),*) => {
         #[repr(u8)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
         pub enum $name {
             $($i = $n,)*
         }
@@ -218,6 +327,7 @@ n_enum!(
     Twn = 3
 );
 
+#[derive(Debug, Clone)]
 pub struct MiiPosition {
     pub page: u8,
     pub slot: u8,
@@ -254,6 +364,7 @@ n_enum!(
 );
 
 /// Mii character features (facial features, etc)
+#[derive(Debug, Clone)]
 pub struct MiiFeatures {
     pub width: u8,
     pub height: u8,
@@ -344,8 +455,8 @@ struct MiiDataRaw {
     author_name: [u8; 0x14],
 }
 
-impl From<[u8; 0x5C]> for MiiDataRaw {
-    fn from(value: [u8; 0x5C]) -> Self {
+impl From<MiiDataBytes> for MiiDataRaw {
+    fn from(value: MiiDataBytes) -> Self {
         // SAFETY: MiiDataRaw has no invalid variants
         // Validation is not performed for this type
         unsafe { std::mem::transmute(value) }

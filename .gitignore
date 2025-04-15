@@ -25,3 +25,6 @@ dist-ssr
 
 # Rust stuff
 /target
+
+# Private
+/private

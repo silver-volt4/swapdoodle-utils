@@ -1,4 +1,8 @@
-use crate::error::GenericResult;
+use crate::{
+    error::GenericResult,
+    mii_data::{MiiData, MiiDataBytes},
+    read::ReadExt,
+};
 
 use super::{BPK1Block, BPK1File};
 
@@ -6,7 +10,7 @@ use super::{BPK1Block, BPK1File};
 pub struct Letter {
     // Using Box<[u8]> here as a "non-resizable binary blob" since we don't exactly need to *touch* this data
     pub thumbnails: Vec<Box<[u8]>>,
-    pub sender_mii: Option</* MiiData */ ()>,
+    pub sender_mii: Option<MiiData>,
     pub stationery: Option</* Stationery */ ()>,
 }
 
@@ -23,7 +27,8 @@ impl BPK1File for Letter {
                     thumbnails.push(block.data.into_boxed_slice());
                 }
                 b"MIISTD1" => {
-                    //
+                    let mut slice: &[u8] = &block.data;
+                    sender_mii = Some(MiiData::from_bytes(slice.read_const_num_of_bytes()?)?)
                 }
                 b"STATIN1" => {}
                 _ => {}
