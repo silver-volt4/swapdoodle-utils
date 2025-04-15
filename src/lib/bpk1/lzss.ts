@@ -1,5 +1,6 @@
 import init, { decompress } from "./lzss/lzss_wasm";
 
-await init();
+// TODO: handle this in a neater way
+init();
 
 export default decompress;

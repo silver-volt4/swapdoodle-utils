@@ -1,0 +1,13 @@
+html {
+    background-image: url("/cloth.png");
+    background-position: center;
+    background-attachment: fixed;
+}
+
+* {
+    font-family: Inter, Helvetica, Arial, sans-serif ;
+}
+
+html, body {
+    margin: 0;
+}
