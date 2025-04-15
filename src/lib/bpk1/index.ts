@@ -124,7 +124,7 @@ export class Stationery extends BPK1File {
             )
         }
         else if (blockName === "STMASK1") {
-            console.log(new Uint8Array(data));
+            // will be added with the rust rewrite
         }
     }
 }
