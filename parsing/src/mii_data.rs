@@ -96,7 +96,7 @@ impl TryFrom<MiiDataBytes> for MiiData {
         let mii_id = u32::from_be_bytes(raw.mii_id);
         let mii_epoch = SystemTime::UNIX_EPOCH + Duration::from_secs(1262304000); // Jan 1st 2010 00:00:00
         let mii_creation_date = mii_epoch + Duration::from_secs(mii_id.pick_bits(0..=27) as u64);
-        let is_special_mii = mii_id.pick_bit(31);
+        let is_special_mii = !mii_id.pick_bit(31);
         let creator_mac_address = raw.creator_mac_address;
 
         let mii_flags = u16::from_le_bytes(raw.mii_flags);

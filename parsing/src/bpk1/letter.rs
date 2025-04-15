@@ -47,14 +47,19 @@ impl BPK1File for Letter {
 pub mod tests {
     use std::fs::read;
 
+    use chrono::{DateTime, Utc};
+
     use super::*;
 
     #[test]
     fn test_de() {
-        println!(
-            "{:#?}",
-            // using read instead of include_bytes so it fails at runtime if the test case isn't present instead of not compiling
-            Letter::new_from_bpk1_bytes(&read("test_cases/letter.bpk").unwrap()).unwrap()
-        );
+        // using read instead of include_bytes so it fails at runtime if the test case isn't present instead of not compiling
+        let letter =
+            dbg!(Letter::new_from_bpk1_bytes(&read("test_cases/letter.bpk").unwrap()).unwrap());
+        let mii = letter.sender_mii.unwrap();
+        println!("Mii: {:#?}", mii);
+        let datetime: DateTime<Utc> = mii.mii_creation_date.into();
+        println!("Creation date: {} UTC", datetime.format("%d/%m/%Y %T"));
+        println!("{}", mii.get_mii_studio_url());
     }
 }
