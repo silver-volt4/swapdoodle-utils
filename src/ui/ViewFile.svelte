@@ -7,12 +7,12 @@
         letter: Letter;
     } = $props();
 
-    function download() {
-        let blob = new Blob([letter.data], {
+    function download(data: ArrayBufferLike, as: string) {
+        let blob = new Blob([data], {
             type: "application/octet-stream",
         });
         let a = document.createElement("a");
-        a.download = "letter.bin";
+        a.download = as;
         a.href = window.URL.createObjectURL(blob);
         a.click();
     }
@@ -20,10 +20,30 @@
 
 <div class="file">
     <div class="header">
-        <div class="title">
-            Swapdoodle file viewer
+        <div class="title">Swapdoodle file viewer</div>
+        <button onclick={() => download(letter.data.buffer, "letter.bpk")}
+            >Save letter (decrypted)</button
+        >
+    </div>
+
+    <div class="card">
+        <div class="card-header">BPK1 sections</div>
+
+        <p>
+            Clicking any of these buttons will download the binary data for that
+            section
+        </p>
+
+        <div class="sections">
+            {#each letter.blocks.keys() as name}
+                <button
+                    onclick={() =>
+                        download(letter.blocks.get(name)!, `${name}.bin`)}
+                >
+                    {name}
+                </button>
+            {/each}
         </div>
-        <button onclick={download}>Save letter (decrypted)</button>
     </div>
 
     <div class="card">
@@ -96,6 +116,12 @@
         font-size: 18px;
     }
 
+    .sections {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5em;
+    }
+
     .gallery {
         display: flex;
         gap: 10px;
@@ -126,7 +152,6 @@
 
     button {
         padding: 0.5em 1em;
-        margin-bottom: 1em;
         background-color: white;
         border: none;
         box-shadow:
@@ -146,9 +171,5 @@
     .header .title {
         font-size: 32px;
         font-weight: bold;
-    }
-
-    .header button {
-        margin-bottom: 0;
     }
 </style>

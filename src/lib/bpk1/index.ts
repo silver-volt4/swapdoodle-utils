@@ -23,6 +23,7 @@ function readString(offset: number, data: DataView, limit: number = Infinity): s
 
 abstract class BPK1File {
     public data: DataView
+    public readonly blocks: Map<string, ArrayBufferLike> = new Map();
 
     constructor(file: ArrayBufferLike) {
         let data = new DataView<ArrayBufferLike>(file);
@@ -52,6 +53,8 @@ abstract class BPK1File {
         console.info(`BPK1: Read ${blocks} blocks`);
         let pos = 0x40;
 
+        let occurrences: { [key: string]: number } = {};
+
         for (let _ = 0; _ < blocks; _++) {
             let offset = this.data.getUint32(pos, true);
             pos += 4;
@@ -61,11 +64,15 @@ abstract class BPK1File {
             pos += 4;
             let blockName = readString(pos, this.data);
             pos += 8;
-            this.processBlock(blockName, this.data.buffer.slice(offset, offset + size));
+
+            occurrences[blockName] ??= -1;
+            occurrences[blockName] += 1;
+
+            let dataSlice = this.data.buffer.slice(offset, offset + size);
+            this.blocks.set(`${blockName}$${occurrences[blockName]}`, dataSlice);
+            this.processBlock(blockName, dataSlice);
         }
     }
-
-
 
     protected abstract processBlock(blockName: string, data: ArrayBufferLike): void;
 }
