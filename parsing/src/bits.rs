@@ -1,8 +1,8 @@
-use std::ops::{BitAnd, Range};
+use std::ops::RangeInclusive;
 
 pub trait PickBit {
     fn pick_bit(&self, bit: usize) -> bool;
-    fn pick_bits(&self, bits: Range<usize>) -> Self;
+    fn pick_bits(&self, bits: RangeInclusive<usize>) -> Self;
 }
 
 macro_rules! gen_pick_bits {
@@ -13,8 +13,8 @@ macro_rules! gen_pick_bits {
                     (self & (1 << bit)) != 0
                 }
 
-                fn pick_bits(&self, bits: Range<usize>) -> $t {
-                    (self >> bits.start) & ((1 << bits.end) - 1)
+                fn pick_bits(&self, bits: RangeInclusive<usize>) -> $t {
+                    (self & ((((1 << bits.end()) - 1) << 1) | 1)) >> bits.start()
                 }
             }
         )*

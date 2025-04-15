@@ -80,15 +80,15 @@ impl TryFrom<MiiDataBytes> for MiiData {
         };
 
         let copying_allowed = raw.meta_flags.pick_bit(0);
-        let region_lock: MiiRegionLock = raw.meta_flags.pick_bits(2..4).try_into().unwrap();
+        let region_lock: MiiRegionLock = raw.meta_flags.pick_bits(2..=3).try_into().unwrap();
         let name_has_profanity = raw.meta_flags.pick_bit(1);
         let name_character_set: MiiNameCharacterSet =
-            raw.meta_flags.pick_bits(4..6).try_into().unwrap();
+            raw.meta_flags.pick_bits(4..=5).try_into().unwrap();
         let position = MiiPosition {
-            page: raw.selection_position.pick_bits(0..4),
-            slot: raw.selection_position.pick_bits(4..8),
+            page: raw.selection_position.pick_bits(0..=3),
+            slot: raw.selection_position.pick_bits(4..=7),
         };
-        let source_device = raw.source_device.pick_bits(4..7);
+        let source_device = raw.source_device.pick_bits(4..=6);
         let source_device: MiiSourceDevice = raw
             .source_device
             .try_into()
@@ -96,18 +96,18 @@ impl TryFrom<MiiDataBytes> for MiiData {
         let system_id = raw.system_id;
         let mii_id = u32::from_be_bytes(raw.mii_id);
         let mii_epoch = SystemTime::UNIX_EPOCH + Duration::from_secs(1262304000); // Jan 1st 2010 00:00:00
-        let mii_creation_date = mii_epoch + Duration::from_secs(mii_id.pick_bits(0..28) as u64);
+        let mii_creation_date = mii_epoch + Duration::from_secs(mii_id.pick_bits(0..=27) as u64);
         let is_special_mii = mii_id.pick_bit(31);
         let creator_mac_address = raw.creator_mac_address;
 
         let mii_flags = u16::from_le_bytes(raw.mii_flags);
         let mii_gender: MiiGender = (mii_flags.pick_bit(0) as u8).try_into().unwrap();
-        let mii_birthday_month = mii_flags.pick_bits(1..5) as u8;
+        let mii_birthday_month = mii_flags.pick_bits(1..=4) as u8;
         let mii_birthday_month: chrono::Month = mii_birthday_month
             .try_into()
             .map_err(|_| MiiDeserializeError::InvalidBirthdayMonth(mii_birthday_month))?;
-        let mii_birthday_day = mii_flags.pick_bits(5..10) as u8; // I'm not gonna bother checking this one...
-        let favorite_color = mii_flags.pick_bits(10..14) as u8;
+        let mii_birthday_day = mii_flags.pick_bits(5..=9) as u8; // I'm not gonna bother checking this one...
+        let favorite_color = mii_flags.pick_bits(10..=13) as u8;
         let favorite_color: MiiFavoriteColor = favorite_color
             .try_into()
             .map_err(|_| MiiDeserializeError::InvalidFavoriteColor(favorite_color))?;
@@ -127,59 +127,59 @@ impl TryFrom<MiiDataBytes> for MiiData {
             width: raw.width_height[1],
             height: raw.width_height[0],
 
-            face_shape: raw.sharing_face_shape_skin_color.pick_bits(1..5),
-            skin_color: raw.sharing_face_shape_skin_color.pick_bits(5..8),
+            face_shape: raw.sharing_face_shape_skin_color.pick_bits(1..=4),
+            skin_color: raw.sharing_face_shape_skin_color.pick_bits(5..=7),
 
-            wrinkles: raw.wrinkles_makeup.pick_bits(0..4),
-            makeup: raw.wrinkles_makeup.pick_bits(4..8),
+            wrinkles: raw.wrinkles_makeup.pick_bits(0..=3),
+            makeup: raw.wrinkles_makeup.pick_bits(4..=7),
 
             hair_style: raw.hair_style,
 
-            hair_color: raw.hair_color_flip_hair.pick_bits(0..3),
+            hair_color: raw.hair_color_flip_hair.pick_bits(0..=2),
             flip_hair: raw.hair_color_flip_hair.pick_bit(3),
 
-            eye_style: eyes.pick_bits(0..6) as u8,
-            eye_color: eyes.pick_bits(6..9) as u8,
-            eye_scale: eyes.pick_bits(9..13) as u8,
-            eye_scale_y: eyes.pick_bits(13..16) as u8,
-            eye_rotation: eyes.pick_bits(16..21) as u8,
-            eye_spacing_x: eyes.pick_bits(21..25) as u8,
-            eye_position_y: eyes.pick_bits(25..30) as u8,
+            eye_style: eyes.pick_bits(0..=5) as u8,
+            eye_color: eyes.pick_bits(6..=8) as u8,
+            eye_scale: eyes.pick_bits(9..=12) as u8,
+            eye_scale_y: eyes.pick_bits(13..=15) as u8,
+            eye_rotation: eyes.pick_bits(16..=20) as u8,
+            eye_spacing_x: eyes.pick_bits(21..=24) as u8,
+            eye_position_y: eyes.pick_bits(25..=29) as u8,
 
-            eyebrow_style: eyebrows.pick_bits(0..5) as u8,
-            eyebrow_color: eyebrows.pick_bits(5..8) as u8,
-            eyebrow_scale: eyebrows.pick_bits(8..12) as u8,
-            eyebrow_scale_y: eyebrows.pick_bits(12..15) as u8,
-            eyebrow_rotation: eyebrows.pick_bits(16..20) as u8,
-            eyebrow_spacing_x: eyebrows.pick_bits(21..25) as u8,
-            eyebrow_position_y: eyebrows.pick_bits(25..30) as u8,
+            eyebrow_style: eyebrows.pick_bits(0..=4) as u8,
+            eyebrow_color: eyebrows.pick_bits(5..=7) as u8,
+            eyebrow_scale: eyebrows.pick_bits(8..=11) as u8,
+            eyebrow_scale_y: eyebrows.pick_bits(12..=14) as u8,
+            eyebrow_rotation: eyebrows.pick_bits(16..=19) as u8,
+            eyebrow_spacing_x: eyebrows.pick_bits(21..=24) as u8,
+            eyebrow_position_y: eyebrows.pick_bits(25..=29) as u8,
 
-            nose_style: nose.pick_bits(0..5) as u8,
-            nose_scale: nose.pick_bits(5..9) as u8,
-            nose_position_y: nose.pick_bits(9..14) as u8,
+            nose_style: nose.pick_bits(0..=4) as u8,
+            nose_scale: nose.pick_bits(5..=8) as u8,
+            nose_position_y: nose.pick_bits(9..=13) as u8,
 
-            mouth_style: mouth.pick_bits(0..6) as u8,
-            mouth_color: mouth.pick_bits(6..9) as u8,
-            mouth_scale: mouth.pick_bits(9..13) as u8,
-            mouth_scale_y: mouth.pick_bits(13..16) as u8,
+            mouth_style: mouth.pick_bits(0..=5) as u8,
+            mouth_color: mouth.pick_bits(6..=8) as u8,
+            mouth_scale: mouth.pick_bits(9..=12) as u8,
+            mouth_scale_y: mouth.pick_bits(13..=15) as u8,
 
-            mouth_position_y: mouth_y_mustache.pick_bits(0..5) as u8,
-            mustache_style: mouth_y_mustache.pick_bits(5..8) as u8,
+            mouth_position_y: mouth_y_mustache.pick_bits(0..=4) as u8,
+            mustache_style: mouth_y_mustache.pick_bits(5..=7) as u8,
 
-            beard_style: beard_mustache.pick_bits(0..3) as u8,
-            beard_color: beard_mustache.pick_bits(3..6) as u8,
-            mustache_scale: beard_mustache.pick_bits(6..10) as u8,
-            mustache_position_y: beard_mustache.pick_bits(10..15) as u8,
+            beard_style: beard_mustache.pick_bits(0..=2) as u8,
+            beard_color: beard_mustache.pick_bits(3..=5) as u8,
+            mustache_scale: beard_mustache.pick_bits(6..=9) as u8,
+            mustache_position_y: beard_mustache.pick_bits(10..=14) as u8,
 
-            glasses_style: glasses.pick_bits(0..4) as u8,
-            glasses_color: glasses.pick_bits(4..7) as u8,
-            glasses_scale: glasses.pick_bits(7..11) as u8,
-            glasses_position_y: glasses.pick_bits(11..16) as u8,
+            glasses_style: glasses.pick_bits(0..=3) as u8,
+            glasses_color: glasses.pick_bits(4..=6) as u8,
+            glasses_scale: glasses.pick_bits(7..=10) as u8,
+            glasses_position_y: glasses.pick_bits(11..=15) as u8,
 
             mole_enabled: mole.pick_bit(0),
-            mole_scale: mole.pick_bits(1..5) as u8,
-            mole_position_x: mole.pick_bits(5..10) as u8,
-            mole_position_y: mole.pick_bits(10..15) as u8,
+            mole_scale: mole.pick_bits(1..=4) as u8,
+            mole_position_x: mole.pick_bits(5..=9) as u8,
+            mole_position_y: mole.pick_bits(10..=14) as u8,
         };
 
         let creator_name = name_from_bytes(raw.author_name);
