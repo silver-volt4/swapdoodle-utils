@@ -89,10 +89,9 @@ impl TryFrom<MiiDataBytes> for MiiData {
             slot: raw.selection_position.pick_bits(4..=7),
         };
         let source_device = raw.source_device.pick_bits(4..=6);
-        let source_device: MiiSourceDevice = raw
-            .source_device
+        let source_device: MiiSourceDevice = source_device
             .try_into()
-            .map_err(|_| MiiDeserializeError::UnknownSourceDevice(source_device))?;
+            .map_err(MiiDeserializeError::UnknownSourceDevice)?;
         let system_id = raw.system_id;
         let mii_id = u32::from_be_bytes(raw.mii_id);
         let mii_epoch = SystemTime::UNIX_EPOCH + Duration::from_secs(1262304000); // Jan 1st 2010 00:00:00
@@ -110,7 +109,7 @@ impl TryFrom<MiiDataBytes> for MiiData {
         let favorite_color = mii_flags.pick_bits(10..=13) as u8;
         let favorite_color: MiiFavoriteColor = favorite_color
             .try_into()
-            .map_err(|_| MiiDeserializeError::InvalidFavoriteColor(favorite_color))?;
+            .map_err(MiiDeserializeError::InvalidFavoriteColor)?;
         let is_favorite = mii_flags.pick_bit(14);
         let mii_name = name_from_bytes(raw.mii_name);
         let sharing_disabled = raw.sharing_face_shape_skin_color.pick_bit(0);
@@ -298,13 +297,13 @@ macro_rules! n_enum {
         }
 
         impl TryFrom<u8> for $name {
-            type Error = ();
+            type Error = u8;
 
             fn try_from(value: u8) -> Result<Self, Self::Error> {
                 use $name::*;
                 Ok(match value {
                     $($n => $i,)*
-                    _ => Err(())?,
+                    v => Err(v)?,
                 })
             }
         }
