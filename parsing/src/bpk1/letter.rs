@@ -2,6 +2,7 @@ use crate::{
     error::GenericResult,
     mii_data::{MiiData, MiiDataBytes},
     read::ReadExt,
+    sheet::{self, Sheet},
 };
 
 use super::{BPK1Block, BPK1File};
@@ -19,6 +20,7 @@ impl BPK1File for Letter {
         let mut thumbnails = vec![];
         let mut sender_mii = None;
         let mut stationery = None;
+        let mut sheets = vec![];
 
         for block in blocks {
             // Apparently you can't cleanly match against CString; so I'll just use a byte string. Essentially identical
@@ -31,6 +33,9 @@ impl BPK1File for Letter {
                     sender_mii = Some(MiiData::from_bytes(slice.read_const_num_of_bytes()?)?)
                 }
                 b"STATIN1" => {}
+                b"SHEET1" => {
+                    sheets.push(Sheet::from_bytes(block.data).unwrap());
+                }
                 _ => {}
             }
         }
