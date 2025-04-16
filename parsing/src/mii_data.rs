@@ -4,9 +4,11 @@ use std::{
     time::{Duration, SystemTime},
 };
 
+use serde::Serialize;
+
 use crate::bits::PickBit;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct MiiData {
     pub copying_allowed: bool,
     pub region_lock: MiiRegionLock,
@@ -291,7 +293,7 @@ impl MiiData {
 macro_rules! n_enum {
     ($name: ident; $($i: ident = $n: expr),*) => {
         #[repr(u8)]
-        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
         pub enum $name {
             $($i = $n,)*
         }
@@ -326,7 +328,7 @@ n_enum!(
     Twn = 3
 );
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct MiiPosition {
     pub page: u8,
     pub slot: u8,
@@ -363,7 +365,7 @@ n_enum!(
 );
 
 /// Mii character features (facial features, etc)
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct MiiFeatures {
     pub width: u8,
     pub height: u8,

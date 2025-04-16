@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Letter } from "./lib/bpk1";
+    import { type Letter, parse_letter } from "./lib/parsing/parsing";
 
     let reader: Promise<Letter> | undefined = $state();
 
@@ -20,7 +20,9 @@
                     reject("Cannot read file content");
                     return;
                 }
-                resolve(new Letter(content));
+                const letter = parse_letter(new Uint8Array(content));
+                console.log(letter);
+                resolve(letter);
             };
         });
     }

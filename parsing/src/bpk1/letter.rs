@@ -1,3 +1,5 @@
+use serde::Serialize;
+
 use crate::{
     error::GenericResult,
     mii_data::{MiiData, MiiDataBytes},
@@ -6,7 +8,7 @@ use crate::{
 
 use super::{BPK1Block, BPK1File};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Letter {
     // Using Box<[u8]> here as a "non-resizable binary blob" since we don't exactly need to *touch* this data
     pub thumbnails: Vec<Box<[u8]>>,
