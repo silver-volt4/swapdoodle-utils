@@ -4,6 +4,7 @@ use crate::{
     error::GenericResult,
     mii_data::{MiiData, MiiDataBytes},
     read::ReadExt,
+    sheet::{self, Sheet},
 };
 
 use super::{BPK1Block, BPK1File};
@@ -14,6 +15,7 @@ pub struct Letter {
     pub thumbnails: Vec<Box<[u8]>>,
     pub sender_mii: Option<MiiData>,
     pub stationery: Option</* Stationery */ ()>,
+    pub sheets: Vec<Sheet>,
 }
 
 impl BPK1File for Letter {
@@ -21,6 +23,7 @@ impl BPK1File for Letter {
         let mut thumbnails = vec![];
         let mut sender_mii = None;
         let mut stationery = None;
+        let mut sheets = vec![];
 
         for block in blocks {
             // Apparently you can't cleanly match against CString; so I'll just use a byte string. Essentially identical
@@ -33,6 +36,9 @@ impl BPK1File for Letter {
                     sender_mii = Some(MiiData::from_bytes(slice.read_const_num_of_bytes()?)?)
                 }
                 b"STATIN1" => {}
+                b"SHEET1" => {
+                    sheets.push(Sheet::from_bytes(block.data).unwrap());
+                }
                 _ => {}
             }
         }
@@ -41,6 +47,7 @@ impl BPK1File for Letter {
             thumbnails,
             sender_mii,
             stationery,
+            sheets,
         })
     }
 }
@@ -63,5 +70,6 @@ pub mod tests {
         let datetime: DateTime<Utc> = mii.mii_creation_date.into();
         println!("Creation date: {} UTC", datetime.format("%d/%m/%Y %T"));
         println!("{}", mii.get_mii_studio_url());
+        println!("{:#?}", letter.sheets);
     }
 }
