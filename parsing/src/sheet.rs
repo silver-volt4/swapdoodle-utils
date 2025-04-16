@@ -2,6 +2,7 @@ use std::io::{Cursor, Error as IoError};
 
 use crate::{bits::PickBit, read::ReadExt};
 
+#[derive(Debug)]
 pub struct Sheet {
     pub strokes: Vec<SheetStroke>,
 }

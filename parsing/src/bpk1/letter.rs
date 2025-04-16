@@ -13,6 +13,7 @@ pub struct Letter {
     pub thumbnails: Vec<Box<[u8]>>,
     pub sender_mii: Option<MiiData>,
     pub stationery: Option</* Stationery */ ()>,
+    pub sheets: Vec<Sheet>,
 }
 
 impl BPK1File for Letter {
@@ -44,6 +45,7 @@ impl BPK1File for Letter {
             thumbnails,
             sender_mii,
             stationery,
+            sheets,
         })
     }
 }
@@ -66,5 +68,6 @@ pub mod tests {
         let datetime: DateTime<Utc> = mii.mii_creation_date.into();
         println!("Creation date: {} UTC", datetime.format("%d/%m/%Y %T"));
         println!("{}", mii.get_mii_studio_url());
+        println!("{:#?}", letter.sheets);
     }
 }
