@@ -1,6 +1,7 @@
 pub mod letter;
 
 use std::{
+    collections::HashMap,
     error::Error,
     ffi::CString,
     fmt::Display,
@@ -108,3 +109,17 @@ where
 
 trait CursorTrait: BufRead + Seek {}
 impl<T: AsRef<[u8]>> CursorTrait for Cursor<T> {}
+
+pub type BlocksHashMap = HashMap<String, Vec<Vec<u8>>>;
+
+impl BPK1File for BlocksHashMap {
+    fn new_from_bpk1_blocks(blocks: Vec<BPK1Block>) -> GenericResult<Self> {
+        let mut map = Self::new();
+        for block in blocks {
+            map.entry(block.name.to_str()?.to_string())
+                .or_insert_with(|| vec![])
+                .push(block.data);
+        }
+        Ok(map)
+    }
+}

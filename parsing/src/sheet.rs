@@ -23,7 +23,7 @@ pub struct SheetStroke {
 }
 
 impl Sheet {
-    pub fn from_bytes(bytes: Vec<u8>) -> Result<Self, IoError> {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, IoError> {
         Self::try_from(bytes)
     }
 }
@@ -41,10 +41,10 @@ impl SheetStroke {
     }
 }
 
-impl TryFrom<Vec<u8>> for Sheet {
+impl TryFrom<&[u8]> for Sheet {
     type Error = IoError;
 
-    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
         let mut reader = Cursor::new(value);
         reader.read_u32_le()?;
         let num_blocks = reader.read_u32_le()?;

@@ -1,13 +1,8 @@
 use serde::Serialize;
 
-use crate::{
-    error::GenericResult,
-    mii_data::{MiiData, MiiDataBytes},
-    read::ReadExt,
-    sheet::{self, Sheet},
-};
+use crate::{error::GenericResult, mii_data::MiiData, read::ReadExt, sheet::Sheet};
 
-use super::{BPK1Block, BPK1File};
+use super::{BPK1Block, BPK1File, BlocksHashMap};
 
 #[derive(Debug, Serialize)]
 pub struct Letter {
@@ -15,6 +10,7 @@ pub struct Letter {
     pub sender_mii: Option<MiiData>,
     pub stationery: Option</* Stationery */ ()>,
     pub sheets: Vec<Sheet>,
+    pub blocks: BlocksHashMap,
 }
 
 impl BPK1File for Letter {
@@ -24,11 +20,11 @@ impl BPK1File for Letter {
         let mut stationery = None;
         let mut sheets = vec![];
 
-        for block in blocks {
+        for block in &blocks {
             // Apparently you can't cleanly match against CString; so I'll just use a byte string. Essentially identical
             match block.name.to_bytes() {
                 b"THUMB2" => {
-                    thumbnails.push(block.data);
+                    thumbnails.push(block.data.to_owned());
                 }
                 b"MIISTD1" => {
                     let mut slice: &[u8] = &block.data;
@@ -36,7 +32,7 @@ impl BPK1File for Letter {
                 }
                 b"STATIN1" => {}
                 b"SHEET1" => {
-                    sheets.push(Sheet::from_bytes(block.data).unwrap());
+                    sheets.push(Sheet::from_bytes(&block.data).unwrap());
                 }
                 _ => {}
             }
@@ -47,6 +43,7 @@ impl BPK1File for Letter {
             sender_mii,
             stationery,
             sheets,
+            blocks: BlocksHashMap::new_from_bpk1_blocks(blocks)?,
         })
     }
 }
