@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { parse_letter } from "./lib/parsing/parsing";
+    import { parse_letter, type Letter } from "./lib/parsing/parsing";
     import OpenFile from "./ui/OpenFile.svelte";
     import ViewFile from "./ui/ViewFile.svelte";
 
@@ -23,22 +23,24 @@
             if (!content) {
                 return;
             }
-            letter = parse_letter(new Uint8Array(content));
+            letterData = new Uint8Array(content);
+            letter = parse_letter(letterData);
             console.log(letter);
         };
 
         reader.readAsArrayBuffer(file);
     }
 
-    let letter: any | undefined = $state.raw();
+    let letterData: Uint8Array | undefined = $state.raw();
+    let letter: Letter | undefined = $state.raw();
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="root" ondragover={dragOver} ondrop={drop}>
-    {#if !letter}
+    {#if !(letter && letterData)}
         <OpenFile onfileaccepted={(file) => readFile(file)} />
     {:else}
-        <ViewFile {letter}></ViewFile>
+        <ViewFile {letter} {letterData}></ViewFile>
     {/if}
 </div>
 

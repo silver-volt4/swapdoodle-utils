@@ -21,6 +21,11 @@ pub fn decompress(bytes: &[u8]) -> Vec<u8> {
     parsing::lzss::decompress_from_slice(bytes).unwrap()
 }
 
+#[wasm_bindgen]
+pub fn decompress_if_compressed(bytes: &[u8]) -> Vec<u8> {
+    parsing::lzss::decompress_from_slice(bytes).unwrap_or_else(|_| bytes.to_vec())
+}
+
 fn blocks(v: BlocksHashMap) -> HashMap<String, Vec<ByteBuf>> {
     v.into_iter()
         .map(|(n, e)| (n, e.into_iter().map(Into::into).collect()))

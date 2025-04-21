@@ -1,11 +1,14 @@
 <script lang="ts">
-    import {type Letter} from "../lib/parsing/parsing";
+    import { decompress, type Letter } from "../lib/parsing/parsing";
+    import { decompress_if_compressed } from "../lib/parsing/wasm/parsing_wasm";
     import Doodle from "./Doodle.svelte";
 
     let {
-        letter: letter,
+        letter,
+        letterData,
     }: {
         letter: Letter;
+        letterData: Uint8Array;
     } = $props();
 
     function download(data: Uint8Array, as: string) {
@@ -22,9 +25,11 @@
 <div class="file">
     <div class="header">
         <div class="title">Swapdoodle file viewer</div>
-        <!--        <button onclick={() => download(letter.data.buffer, "letter.bpk")}-->
-        <!--            >Save letter (decrypted)</button-->
-        <!--        >-->
+        <button
+            onclick={() =>
+                download(decompress_if_compressed(letterData), "letter.bpk")}
+            >Save letter (decrypted)</button
+        >
     </div>
 
     <div class="card">
@@ -38,19 +43,17 @@
         <div class="sections">
             {#each letter.blocks.entries() as [name, blocks]}
                 {#if blocks.length <= 1}
-                    <button onclick={() =>
-                        download(blocks[0], `${name}.bin`)}
-                    >
+                    <button onclick={() => download(blocks[0], `${name}.bin`)}>
                         {name}
                     </button>
                 {:else}
                     <div class="btn noclick">
                         <span style="margin-right: 0.5em;">
-                        {name}
+                            {name}
                         </span>
                         {#each blocks as block, index}
-                            <button onclick={() =>
-                            download(block, `${name}.bin`)}
+                            <button
+                                onclick={() => download(block, `${name}.bin`)}
                             >
                                 #{index + 1}
                             </button>
@@ -71,9 +74,11 @@
                         <b>{title}</b>
                     </p>
                     <img
-                            class="thumbnail"
-                            src={URL.createObjectURL(new Blob([thumbnail], {type:"image/jpeg"}))}
-                            alt={title}
+                        class="thumbnail"
+                        src={URL.createObjectURL(
+                            new Blob([thumbnail], { type: "image/jpeg" }),
+                        )}
+                        alt={title}
                     />
                 </div>
             {/each}
@@ -95,11 +100,7 @@
         <div class="card">
             <div class="card-header">Sender</div>
             <div class="mii">
-                <img
-                        class="mii"
-                        src={letter.sender_mii.url}
-                        alt=""
-                />
+                <img class="mii" src={letter.sender_mii.url} alt="" />
                 <div class="name">
                     {letter.sender_mii.name}
                     {#if letter.sender_mii.author_name}
@@ -135,8 +136,9 @@
 
     .card {
         background-color: rgba(255, 255, 255, 0.4);
-        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16),
-        0 3px 6px rgba(0, 0, 0, 0.23);
+        box-shadow:
+            0 3px 6px rgba(0, 0, 0, 0.16),
+            0 3px 6px rgba(0, 0, 0, 0.23);
         padding: 1em;
         margin-bottom: 1em;
         font-size: 18px;
@@ -176,12 +178,14 @@
         border-radius: 50%;
     }
 
-    button, .btn {
+    button,
+    .btn {
         padding: 0.5em 1em;
         background-color: white;
         border: none;
-        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16),
-        0 3px 6px rgba(0, 0, 0, 0.23);
+        box-shadow:
+            0 3px 6px rgba(0, 0, 0, 0.16),
+            0 3px 6px rgba(0, 0, 0, 0.23);
         cursor: pointer;
         font-size: 18px;
     }
