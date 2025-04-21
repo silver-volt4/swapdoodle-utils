@@ -22,8 +22,7 @@ pub struct MiiData {
     pub is_special_mii: bool,
     pub creator_mac_address: [u8; 6],
     pub mii_gender: MiiGender,
-    pub mii_birthday_month: chrono::Month,
-    pub mii_birthday_day: u8,
+    pub mii_birthday: Option<MiiBirthday>,
     pub favorite_color: MiiFavoriteColor,
     pub is_favorite: bool,
     pub mii_name: String,
@@ -104,10 +103,15 @@ impl TryFrom<MiiDataBytes> for MiiData {
         let mii_flags = u16::from_le_bytes(raw.mii_flags);
         let mii_gender: MiiGender = (mii_flags.pick_bit(0) as u8).try_into().unwrap();
         let mii_birthday_month = mii_flags.pick_bits(1..=4) as u8;
-        let mii_birthday_month: chrono::Month = mii_birthday_month
-            .try_into()
-            .map_err(|_| MiiDeserializeError::InvalidBirthdayMonth(mii_birthday_month))?;
-        let mii_birthday_day = mii_flags.pick_bits(5..=9) as u8; // I'm not gonna bother checking this one...
+        let mii_birthday = if mii_birthday_month != 0 {
+            let month: chrono::Month = mii_birthday_month
+                .try_into()
+                .map_err(|_| MiiDeserializeError::InvalidBirthdayMonth(mii_birthday_month))?;
+            let day = mii_flags.pick_bits(5..=9) as u8; // I'm not gonna bother checking this one...
+            Some(MiiBirthday { month, day })
+        } else {
+            None
+        };
         let favorite_color = mii_flags.pick_bits(10..=13) as u8;
         let favorite_color: MiiFavoriteColor = favorite_color
             .try_into()
@@ -198,8 +202,7 @@ impl TryFrom<MiiDataBytes> for MiiData {
             is_special_mii,
             creator_mac_address,
             mii_gender,
-            mii_birthday_month,
-            mii_birthday_day,
+            mii_birthday,
             favorite_color,
             is_favorite,
             mii_name,
@@ -347,6 +350,12 @@ n_enum!(
     Male = 0,
     Female = 1
 );
+
+#[derive(Debug, Clone, Serialize)]
+pub struct MiiBirthday {
+    pub month: chrono::Month,
+    pub day: u8,
+}
 
 n_enum!(
     MiiFavoriteColor;
