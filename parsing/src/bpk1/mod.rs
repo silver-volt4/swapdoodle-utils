@@ -1,4 +1,5 @@
 pub mod letter;
+pub mod stationery;
 
 use std::{
     collections::HashMap,
@@ -116,7 +117,7 @@ impl BPK1File for BlocksHashMap {
     fn new_from_bpk1_blocks(blocks: Vec<BPK1Block>) -> GenericResult<Self> {
         let mut map = Self::new();
         for block in blocks {
-            map.entry(block.name.to_str()?.to_string())
+            map.entry(block.name.into_string()?)
                 .or_insert_with(|| vec![])
                 .push(block.data);
         }

@@ -1,17 +1,35 @@
+use std::{error::Error, fmt::Display};
+
 use serde::Serialize;
 
 use crate::{error::GenericResult, mii_data::MiiData, read::ReadExt, sheet::Sheet};
 
-use super::{BPK1Block, BPK1File, BlocksHashMap};
+use super::{BPK1Block, BPK1File, BlocksHashMap, stationery::Stationery};
 
 #[derive(Debug, Serialize)]
 pub struct Letter {
     pub thumbnails: Vec<Vec<u8>>,
     pub sender_mii: Option<MiiData>,
-    pub stationery: Option</* Stationery */ ()>,
+    pub stationery: Stationery,
     pub sheets: Vec<Sheet>,
     pub blocks: BlocksHashMap,
 }
+
+#[derive(Debug, Serialize)]
+pub enum LetterDeserializeError {
+    MissingStationery,
+}
+
+impl Display for LetterDeserializeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use LetterDeserializeError::*;
+        match self {
+            MissingStationery => write!(f, "Missing stationery block"),
+        }
+    }
+}
+
+impl Error for LetterDeserializeError {}
 
 impl BPK1File for Letter {
     fn new_from_bpk1_blocks(blocks: Vec<BPK1Block>) -> GenericResult<Self> {
@@ -30,7 +48,7 @@ impl BPK1File for Letter {
                     let mut slice: &[u8] = &block.data;
                     sender_mii = Some(MiiData::from_bytes(slice.read_const_num_of_bytes()?)?)
                 }
-                b"STATIN1" => {}
+                b"STATIN1" => stationery = Some(Stationery::new_from_bpk1_bytes(&block.data)?),
                 b"SHEET1" => {
                     sheets.push(Sheet::from_bytes(&block.data).unwrap());
                 }
@@ -41,7 +59,7 @@ impl BPK1File for Letter {
         Ok(Letter {
             thumbnails,
             sender_mii,
-            stationery,
+            stationery: stationery.ok_or(LetterDeserializeError::MissingStationery)?,
             sheets,
             blocks: BlocksHashMap::new_from_bpk1_blocks(blocks)?,
         })
