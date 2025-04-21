@@ -35,8 +35,8 @@ impl SheetStroke {
             y: (bytes[1] & 0x0F) << 4 | bytes[0].pick_bits(4..=7),
             draw_line: bytes[2].pick_bit(6),
             style_color: bytes[3].pick_bits(0..=2),
-            style_3d: bytes[3].pick_bit(5),
-            style_bold: bytes[3].pick_bit(4),
+            style_3d: bytes[2].pick_bit(5),
+            style_bold: bytes[3].pick_bit(3),
         }
     }
 }

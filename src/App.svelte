@@ -24,6 +24,7 @@
                 return;
             }
             letter = parse_letter(new Uint8Array(content));
+            console.log(letter);
         };
 
         reader.readAsArrayBuffer(file);
