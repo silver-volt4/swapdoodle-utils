@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use parsing::color::Colors;
 use parsing::{
     bpk1::{BPK1File, BlocksHashMap, letter::Letter, stationery::Stationery},
     mii_data::MiiData,
@@ -67,6 +68,7 @@ pub struct JsLetter {
     pub stationery: JsStationery,
     pub sheets: Vec<Sheet>,
     pub blocks: HashMap<String, Vec<ByteBuf>>,
+    pub colors: Option<Colors>,
 }
 
 #[wasm_bindgen]
@@ -78,5 +80,6 @@ pub fn parse_letter(bytes: &[u8]) -> JsLetter {
         stationery: letter.stationery.into(),
         sheets: letter.sheets,
         blocks: blocks(letter.blocks),
+        colors: letter.colors,
     }
 }

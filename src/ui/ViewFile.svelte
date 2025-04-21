@@ -1,5 +1,6 @@
 <script lang="ts">
-    // import { Letter } from "../lib/bpk1";
+    import {type Letter} from "../lib/parsing/parsing";
+    import Doodle from "./Doodle.svelte";
 
     let {
         letter: letter,
@@ -7,7 +8,7 @@
         letter: Letter;
     } = $props();
 
-    function download(data: ArrayBufferLike, as: string) {
+    function download(data: Uint8Array, as: string) {
         let blob = new Blob([data], {
             type: "application/octet-stream",
         });
@@ -21,9 +22,9 @@
 <div class="file">
     <div class="header">
         <div class="title">Swapdoodle file viewer</div>
-        <button onclick={() => download(letter.data.buffer, "letter.bpk")}
-            >Save letter (decrypted)</button
-        >
+        <!--        <button onclick={() => download(letter.data.buffer, "letter.bpk")}-->
+        <!--            >Save letter (decrypted)</button-->
+        <!--        >-->
     </div>
 
     <div class="card">
@@ -35,13 +36,27 @@
         </p>
 
         <div class="sections">
-            {#each letter.blocks.keys() as name}
-                <button
-                    onclick={() =>
-                        download(letter.blocks.get(name)!, `${name}.bin`)}
-                >
-                    {name}
-                </button>
+            {#each letter.blocks.entries() as [name, blocks]}
+                {#if blocks.length <= 1}
+                    <button onclick={() =>
+                        download(blocks[0], `${name}.bin`)}
+                    >
+                        {name}
+                    </button>
+                {:else}
+                    <div class="btn noclick">
+                        <span style="margin-right: 0.5em;">
+                        {name}
+                        </span>
+                        {#each blocks as block, index}
+                            <button onclick={() =>
+                            download(block, `${name}.bin`)}
+                            >
+                                #{index + 1}
+                            </button>
+                        {/each}
+                    </div>
+                {/if}
             {/each}
         </div>
     </div>
@@ -56,9 +71,9 @@
                         <b>{title}</b>
                     </p>
                     <img
-                        class="thumbnail"
-                        src={URL.createObjectURL(thumbnail)}
-                        alt={title}
+                            class="thumbnail"
+                            src={URL.createObjectURL(new Blob([thumbnail], {type:"image/jpeg"}))}
+                            alt={title}
                     />
                 </div>
             {/each}
@@ -66,31 +81,43 @@
     </div>
 
     <div class="card">
-        <div class="card-header">Sender</div>
-        <div class="mii">
-            <img
-                class="mii"
-                src="https://studio.mii.nintendo.com/miis/image.png?data={letter
-                    .sender?.studioData}&width=128&type=face"
-                alt=""
-            />
-            <div class="name">
-                {letter.sender?.name}
-                {#if letter.sender?.creator}
-                    (mii by: {letter.sender?.creator})
-                {/if}
-            </div>
+        <div class="card-header">Doodles</div>
+        <div class="gallery">
+            {#each letter.sheets as sheet}
+                <div>
+                    <Doodle {sheet} colors={letter.colors}></Doodle>
+                </div>
+            {/each}
         </div>
     </div>
 
+    {#if letter.sender_mii}
+        <div class="card">
+            <div class="card-header">Sender</div>
+            <div class="mii">
+                <img
+                        class="mii"
+                        src={letter.sender_mii.url}
+                        alt=""
+                />
+                <div class="name">
+                    {letter.sender_mii.name}
+                    {#if letter.sender_mii.author_name}
+                        (mii by: {letter.sender_mii.author_name})
+                    {/if}
+                </div>
+            </div>
+        </div>
+    {/if}
+
     <div class="card">
         <div class="card-header">Stationery</div>
-        <p>Name: {letter.stationery?.name}</p>
-        <div class="gallery">
-            {#each letter.stationery?.image ?? [] as stationery}
-                <img src={URL.createObjectURL(stationery)} alt={""} />
-            {/each}
-        </div>
+        <!--        <p>Name: {letter.stationery?.name}</p>-->
+        <!--        <div class="gallery">-->
+        <!--            {#each letter.stationery?.image ?? [] as stationery}-->
+        <!--                <img src={URL.createObjectURL(stationery)} alt={""} />-->
+        <!--            {/each}-->
+        <!--        </div>-->
     </div>
 </div>
 
@@ -108,9 +135,8 @@
 
     .card {
         background-color: rgba(255, 255, 255, 0.4);
-        box-shadow:
-            0 3px 6px rgba(0, 0, 0, 0.16),
-            0 3px 6px rgba(0, 0, 0, 0.23);
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16),
+        0 3px 6px rgba(0, 0, 0, 0.23);
         padding: 1em;
         margin-bottom: 1em;
         font-size: 18px;
@@ -150,15 +176,18 @@
         border-radius: 50%;
     }
 
-    button {
+    button, .btn {
         padding: 0.5em 1em;
         background-color: white;
         border: none;
-        box-shadow:
-            0 3px 6px rgba(0, 0, 0, 0.16),
-            0 3px 6px rgba(0, 0, 0, 0.23);
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16),
+        0 3px 6px rgba(0, 0, 0, 0.23);
         cursor: pointer;
         font-size: 18px;
+    }
+
+    .btn.noclick {
+        cursor: unset;
     }
 
     .header {

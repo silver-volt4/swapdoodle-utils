@@ -2,9 +2,8 @@ use std::{error::Error, fmt::Display};
 
 use serde::Serialize;
 
-use crate::{error::GenericResult, mii_data::MiiData, read::ReadExt, sheet::Sheet};
-
 use super::{BPK1Block, BPK1File, BlocksHashMap, stationery::Stationery};
+use crate::{color::Colors, error::GenericResult, mii_data::MiiData, read::ReadExt, sheet::Sheet};
 
 #[derive(Debug, Serialize)]
 pub struct Letter {
@@ -12,6 +11,7 @@ pub struct Letter {
     pub sender_mii: Option<MiiData>,
     pub stationery: Stationery,
     pub sheets: Vec<Sheet>,
+    pub colors: Option<Colors>,
     pub blocks: BlocksHashMap,
 }
 
@@ -36,6 +36,7 @@ impl BPK1File for Letter {
         let mut thumbnails = vec![];
         let mut sender_mii = None;
         let mut stationery = None;
+        let mut colors = None;
         let mut sheets = vec![];
 
         for block in &blocks {
@@ -47,6 +48,9 @@ impl BPK1File for Letter {
                 b"MIISTD1" => {
                     let mut slice: &[u8] = &block.data;
                     sender_mii = Some(MiiData::from_bytes(slice.read_const_num_of_bytes()?)?)
+                }
+                b"COLSLT1" => {
+                    colors = Some(Colors::from_bytes(&block.data)?);
                 }
                 b"STATIN1" => stationery = Some(Stationery::new_from_bpk1_bytes(&block.data)?),
                 b"SHEET1" => {
@@ -60,6 +64,7 @@ impl BPK1File for Letter {
             thumbnails,
             sender_mii,
             stationery: stationery.ok_or(LetterDeserializeError::MissingStationery)?,
+            colors,
             sheets,
             blocks: BlocksHashMap::new_from_bpk1_blocks(blocks)?,
         })
