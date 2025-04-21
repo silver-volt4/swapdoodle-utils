@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Letter } from "../lib/bpk1";
+    // import { Letter } from "../lib/bpk1";
 
     let {
         letter: letter,
