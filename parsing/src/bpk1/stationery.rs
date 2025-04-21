@@ -77,10 +77,10 @@ impl BPK1File for Stationery {
 }
 
 // Implements a Z order curve for 0..64
-fn z_order_curve(i: u8) -> (usize, usize) {
+fn z_order_curve(i: usize) -> (usize, usize) {
     (
-        ((i & 1) | ((i & 0b100) >> 1) | ((i & 0b10000) >> 2)) as usize,
-        (((i & 2) >> 1) | ((i & 0b1000) >> 2) | ((i & 0b100000) >> 3)) as usize,
+        (i & 1) | ((i & 0b100) >> 1) | ((i & 0b10000) >> 2),
+        ((i & 2) >> 1) | ((i & 0b1000) >> 2) | ((i & 0b100000) >> 3),
     )
 }
 
@@ -91,9 +91,10 @@ fn read_mask(bytes: &[u8]) -> Vec<Vec<u8>> {
     let mut image = vec![vec![0u8; 256]; 256];
     // .cloned() is cloning a u8. This operation is free
     for (ni, i) in bytes.into_iter().take(32768).cloned().enumerate() {
-        let block_x = ni % 128;
+        let block_i = ni % 128;
+        let block_x = (ni / 128) % 32;
         let block_y = ni / 4096;
-        let (x, y) = z_order_curve(i);
+        let (x, y) = z_order_curve(block_i * 2);
         let x = block_x * BLOCK_SIZE + x;
         let y = block_y * BLOCK_SIZE + y;
         image[y][x] = i.pick_bits(0..=3);
