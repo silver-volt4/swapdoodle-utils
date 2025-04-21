@@ -7,6 +7,7 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
+console_error_panic_hook = "0.1.7"
 parsing = { path = "../parsing", features = ["wasm"] }
 serde = { version = "1.0.219", features = ["derive"] }
 serde-wasm-bindgen = "0.6.5"
