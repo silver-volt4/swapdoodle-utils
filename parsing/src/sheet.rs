@@ -1,13 +1,14 @@
+use serde::Serialize;
 use std::io::{Cursor, Error as IoError};
 
 use crate::{bits::PickBit, read::ReadExt};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Sheet {
     pub strokes: Vec<SheetStroke>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct SheetStroke {
     pub x: u8,
     pub y: u8,
