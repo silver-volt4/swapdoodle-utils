@@ -1,31 +1,39 @@
 <script lang="ts">
-    import type {Sheet} from "../lib/parsing/parsing";
+    import type {Sheet, Colors} from "../lib/parsing/parsing";
 
     let canvas: HTMLCanvasElement = $state()!;
 
     interface Props {
         sheet: Sheet
+        colors?: Colors
     }
 
     let {
-        sheet
+        sheet,
+        colors
     }: Props = $props();
+
+    function getColor(index: number) {
+        let color = colors?.colors[index];
+        if(!color) return "rgba(0,0,0,255)";
+        return `rgb(${color.r} ${color.g} ${color.b})`;
+    }
 
     $effect(() => {
         let c = canvas.getContext("2d");
-        console.log(c);
         if (!c) return;
-
-        c.fillStyle = "black";
 
         let drawLine = false;
 
         for (let stroke of sheet.strokes) {
+            // c.beginPath();
+
             if (!drawLine) {
                 c.moveTo(stroke.x, stroke.y);
             }
             c.lineTo(stroke.x, stroke.y);
             c.lineWidth = stroke.style_bold ? 3 : 1;
+            c.strokeStyle = getColor(stroke.style_color);
             c.stroke();
             drawLine = stroke.draw_line;
         }

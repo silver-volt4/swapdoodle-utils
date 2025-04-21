@@ -8,6 +8,7 @@ use serde::Serialize;
 use serde_bytes::{ByteBuf, Bytes};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
+use parsing::color::Colors;
 
 #[wasm_bindgen]
 pub fn decompress(bytes: &[u8]) -> Vec<u8> {
@@ -28,6 +29,7 @@ pub struct JsLetter {
     pub sender_mii: Option<JsMii>,
     pub sheets: Vec<Sheet>,
     pub blocks: HashMap<String, Vec<ByteBuf>>,
+    pub colors: Option<Colors>,
 }
 
 #[wasm_bindgen]
@@ -46,5 +48,6 @@ pub fn parse_letter(bytes: &[u8]) -> JsLetter {
             .into_iter()
             .map(|(n, e)| (n, e.into_iter().map(Into::into).collect()))
             .collect(),
+        colors: letter.colors
     }
 }

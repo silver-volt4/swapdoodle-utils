@@ -85,7 +85,7 @@
         <div class="gallery">
             {#each letter.sheets as sheet}
                 <div>
-                    <Doodle {sheet}></Doodle>
+                    <Doodle {sheet} colors={letter.colors}></Doodle>
                 </div>
             {/each}
         </div>
