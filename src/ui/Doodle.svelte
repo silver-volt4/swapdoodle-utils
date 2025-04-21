@@ -29,6 +29,9 @@
         let drawLine = false;
 
         for (let stroke of sheet.strokes) {
+            c.lineWidth = stroke.style_bold ? 4 : 2;
+            c.strokeStyle = c.fillStyle = getColor(stroke.style_color);
+
             if (!drawLine) {
                 c.moveTo(stroke.x, stroke.y);
                 c.beginPath();
@@ -44,8 +47,7 @@
                 c.beginPath();
             }
             c.lineTo(stroke.x, stroke.y);
-            c.lineWidth = stroke.style_bold ? 4 : 2;
-            c.strokeStyle = getColor(stroke.style_color);
+
             c.stroke();
             // await sleep(16);
             drawLine = stroke.draw_line;
