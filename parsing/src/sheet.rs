@@ -31,8 +31,8 @@ impl Sheet {
 impl SheetStroke {
     pub fn from_bytes(bytes: [u8; 4]) -> SheetStroke {
         SheetStroke {
-            x: (bytes[2] & 0x0F) << 4 | bytes[1].pick_bits(0..=3),
-            y: (bytes[1] & 0x0F) << 4 | bytes[0].pick_bits(0..=3),
+            x: (bytes[2] & 0x0F) << 4 | bytes[1].pick_bits(4..=7),
+            y: (bytes[1] & 0x0F) << 4 | bytes[0].pick_bits(4..=7),
             draw_line: bytes[2].pick_bit(6),
             style_color: bytes[3].pick_bits(0..=2),
             style_3d: bytes[3].pick_bit(5),
