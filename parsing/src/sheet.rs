@@ -1,14 +1,18 @@
 use serde::Serialize;
 use std::io::{Cursor, Error as IoError};
+#[cfg(feature = "tsify")]
+use tsify::Tsify;
 
 use crate::{bits::PickBit, read::ReadExt};
 
 #[derive(Debug, Serialize)]
+#[cfg_attr(feature = "tsify", derive(Tsify))]
 pub struct Sheet {
     pub strokes: Vec<SheetStroke>,
 }
 
 #[derive(Debug, Serialize)]
+#[cfg_attr(feature = "tsify", derive(Tsify))]
 pub struct SheetStroke {
     pub x: u8,
     pub y: u8,

@@ -11,8 +11,7 @@ use super::{BPK1Block, BPK1File};
 
 #[derive(Debug, Serialize)]
 pub struct Letter {
-    // Using Box<[u8]> here as a "non-resizable binary blob" since we don't exactly need to *touch* this data
-    pub thumbnails: Vec<Box<[u8]>>,
+    pub thumbnails: Vec<Vec<u8>>,
     pub sender_mii: Option<MiiData>,
     pub stationery: Option</* Stationery */ ()>,
     pub sheets: Vec<Sheet>,
@@ -29,7 +28,7 @@ impl BPK1File for Letter {
             // Apparently you can't cleanly match against CString; so I'll just use a byte string. Essentially identical
             match block.name.to_bytes() {
                 b"THUMB2" => {
-                    thumbnails.push(block.data.into_boxed_slice());
+                    thumbnails.push(block.data);
                 }
                 b"MIISTD1" => {
                     let mut slice: &[u8] = &block.data;
