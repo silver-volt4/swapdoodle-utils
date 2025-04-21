@@ -1,5 +1,3 @@
-use std::{error::Error, fmt::Display};
-
 use serde::Serialize;
 
 use super::{BPK1Block, BPK1File, BlocksHashMap, stationery::Stationery};
@@ -9,27 +7,11 @@ use crate::{color::Colors, error::GenericResult, mii_data::MiiData, read::ReadEx
 pub struct Letter {
     pub thumbnails: Vec<Vec<u8>>,
     pub sender_mii: Option<MiiData>,
-    pub stationery: Stationery,
+    pub stationery: Option<Stationery>,
     pub sheets: Vec<Sheet>,
     pub colors: Option<Colors>,
     pub blocks: BlocksHashMap,
 }
-
-#[derive(Debug, Serialize)]
-pub enum LetterDeserializeError {
-    MissingStationery,
-}
-
-impl Display for LetterDeserializeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use LetterDeserializeError::*;
-        match self {
-            MissingStationery => write!(f, "Missing stationery block"),
-        }
-    }
-}
-
-impl Error for LetterDeserializeError {}
 
 impl BPK1File for Letter {
     fn new_from_bpk1_blocks(blocks: Vec<BPK1Block>) -> GenericResult<Self> {
@@ -63,7 +45,7 @@ impl BPK1File for Letter {
         Ok(Letter {
             thumbnails,
             sender_mii,
-            stationery: stationery.ok_or(LetterDeserializeError::MissingStationery)?,
+            stationery,
             colors,
             sheets,
             blocks: BlocksHashMap::new_from_bpk1_blocks(blocks)?,

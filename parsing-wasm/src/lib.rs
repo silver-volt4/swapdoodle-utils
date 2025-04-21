@@ -75,7 +75,7 @@ impl From<MiiData> for JsMii {
 pub struct JsLetter {
     pub thumbnails: Vec<ByteBuf>,
     pub sender_mii: Option<JsMii>,
-    pub stationery: JsStationery,
+    pub stationery: Option<JsStationery>,
     pub sheets: Vec<Sheet>,
     pub blocks: HashMap<String, Vec<ByteBuf>>,
     pub colors: Option<Colors>,
@@ -87,7 +87,7 @@ pub fn parse_letter(bytes: &[u8]) -> JsLetter {
     JsLetter {
         thumbnails: letter.thumbnails.into_iter().map(Into::into).collect(),
         sender_mii: letter.sender_mii.map(Into::into),
-        stationery: letter.stationery.into(),
+        stationery: letter.stationery.map(Into::into),
         sheets: letter.sheets,
         blocks: blocks(letter.blocks),
         colors: letter.colors,

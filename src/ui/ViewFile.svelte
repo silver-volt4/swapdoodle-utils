@@ -22,6 +22,32 @@
     }
 </script>
 
+{#snippet bpk1BlockList(blocksMap: Map<string, Uint8Array[]>)}
+    <div class="sections">
+        {#each blocksMap.entries() as [name, blocks]}
+            {#if blocks.length <= 1}
+                <button onclick={() => download(blocks[0], `${name}.bin`)}>
+                    {name}
+                </button>
+            {:else}
+                <div class="btn noclick">
+                    <span style="margin-right: 0.5em;">
+                        {name}
+                    </span>
+                    {#each blocks as block, index}
+                        <button
+                            onclick={() =>
+                                download(block, `${name}$${index}.bin`)}
+                        >
+                            #{index + 1}
+                        </button>
+                    {/each}
+                </div>
+            {/if}
+        {/each}
+    </div>
+{/snippet}
+
 <div class="file">
     <div class="header">
         <div class="title">Swapdoodle file viewer</div>
@@ -40,28 +66,7 @@
             section
         </p>
 
-        <div class="sections">
-            {#each letter.blocks.entries() as [name, blocks]}
-                {#if blocks.length <= 1}
-                    <button onclick={() => download(blocks[0], `${name}.bin`)}>
-                        {name}
-                    </button>
-                {:else}
-                    <div class="btn noclick">
-                        <span style="margin-right: 0.5em;">
-                            {name}
-                        </span>
-                        {#each blocks as block, index}
-                            <button
-                                onclick={() => download(block, `${name}.bin`)}
-                            >
-                                #{index + 1}
-                            </button>
-                        {/each}
-                    </div>
-                {/if}
-            {/each}
-        </div>
+        {@render bpk1BlockList(letter.blocks)}
     </div>
 
     <div class="card">
@@ -111,15 +116,25 @@
         </div>
     {/if}
 
-    <div class="card">
-        <div class="card-header">Stationery</div>
-        <!--        <p>Name: {letter.stationery?.name}</p>-->
-        <!--        <div class="gallery">-->
-        <!--            {#each letter.stationery?.image ?? [] as stationery}-->
-        <!--                <img src={URL.createObjectURL(stationery)} alt={""} />-->
-        <!--            {/each}-->
-        <!--        </div>-->
-    </div>
+    {#if letter.stationery}
+        <div class="card">
+            <div class="card-header">Stationery</div>
+            <p>Name: {letter.stationery.name}</p>
+
+            <div class="gallery">
+                {#each [letter.stationery.background_2d, letter.stationery.background_3d] as stationery}
+                    <img
+                        src={URL.createObjectURL(new Blob([stationery]))}
+                        alt={""}
+                    />
+                {/each}
+            </div>
+
+            <br />
+
+            {@render bpk1BlockList(letter.stationery.blocks)}
+        </div>
+    {/if}
 </div>
 
 <style>
