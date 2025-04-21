@@ -39,6 +39,7 @@
                     0,
                     360,
                 );
+                c.fillStyle = getColor(stroke.style_color);
                 c.fill();
                 c.beginPath();
             }
