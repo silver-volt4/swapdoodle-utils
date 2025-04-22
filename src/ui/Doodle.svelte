@@ -26,31 +26,36 @@
 
         c.clearRect(0, 0, 255, 255);
         c.lineCap = "round";
-        let drawLine = false;
+
+        let old = {x: -1, y: -1}
 
         for (let stroke of sheet.strokes) {
-            c.lineWidth = stroke.style_bold ? 4 : 2;
+            c.lineWidth = stroke.style_bold ? 5 : 2;
             c.strokeStyle = c.fillStyle = getColor(stroke.style_color);
 
-            if (!drawLine) {
-                c.moveTo(stroke.x, stroke.y);
-                c.beginPath();
-                c.arc(
-                    stroke.x,
-                    stroke.y,
-                    (stroke.style_bold ? 4 : 2) / 2,
-                    0,
-                    360,
-                );
-                c.fillStyle = getColor(stroke.style_color);
-                c.fill();
-                c.beginPath();
+            c.beginPath();
+            if(old.x != -1) {
+                c.moveTo(old.x, old.y);
+                c.lineTo(stroke.x, stroke.y);
+                c.stroke();
             }
-            c.lineTo(stroke.x, stroke.y);
+            c.arc(
+                stroke.x,
+                stroke.y,
+                c.lineWidth / 2,
+                0,
+                360,
+            );
+            c.fill();
 
-            c.stroke();
-            // await sleep(16);
-            drawLine = stroke.draw_line;
+            if (stroke.draw_line) {
+                old.x = stroke.x;
+                old.y = stroke.y;
+            } else {
+                old.x = -1;
+            }
+
+            // await sleep(8);
         }
     }
 
@@ -64,5 +69,6 @@
 <style>
     canvas {
         background: white;
+        image-rendering: pixelated;
     }
 </style>
