@@ -1,14 +1,16 @@
 <script lang="ts">
-    import type { Sheet, Colors } from "../lib/parsing/parsing";
+    import type { Sheet, Colors, Stationery } from "../lib/parsing/parsing";
+    import StationeryComponent from "./Stationery.svelte";
 
     let canvas: HTMLCanvasElement = $state()!;
 
     interface Props {
         sheet: Sheet;
         colors?: Colors;
+        stationery?: Stationery;
     }
 
-    let { sheet, colors }: Props = $props();
+    let { sheet, colors, stationery }: Props = $props();
 
     function sleep(ms: number) {
         return new Promise((resolve) => setTimeout(resolve, ms));
@@ -27,25 +29,20 @@
         c.clearRect(0, 0, 255, 255);
         c.lineCap = "round";
 
-        let old = {x: -1, y: -1}
+        let old = { x: -1, y: -1 };
 
         for (let stroke of sheet.strokes) {
             c.lineWidth = stroke.style_bold ? 5 : 2;
-            c.strokeStyle = c.fillStyle = getColor(stroke.style_color);
+            c.strokeStyle = getColor(stroke.style_color);
+            c.fillStyle = c.strokeStyle;
 
             c.beginPath();
-            if(old.x != -1) {
+            if (old.x != -1) {
                 c.moveTo(old.x, old.y);
                 c.lineTo(stroke.x, stroke.y);
                 c.stroke();
             }
-            c.arc(
-                stroke.x,
-                stroke.y,
-                c.lineWidth / 2,
-                0,
-                360,
-            );
+            c.arc(stroke.x, stroke.y, c.lineWidth / 2, 0, 360);
             c.fill();
 
             if (stroke.draw_line) {
@@ -64,11 +61,27 @@
     });
 </script>
 
-<canvas bind:this={canvas} width="250" height="230"> </canvas>
+<div class="doodle">
+    {#if stationery}
+        <StationeryComponent {stationery}></StationeryComponent>
+    {/if}
+
+    <canvas class="drawing" bind:this={canvas} width="250" height="230">
+    </canvas>
+</div>
 
 <style>
-    canvas {
-        background: white;
+    .doodle {
+        width: 250px;
+        height: 230px;
+        position: relative;
+    }
+
+    .doodle > :global(*) {
+        position: absolute;
+    }
+
+    .drawing {
         image-rendering: pixelated;
     }
 </style>

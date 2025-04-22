@@ -54,8 +54,9 @@
         <button
             onclick={() =>
                 download(decompress_if_compressed(letterData), "letter.bpk")}
-            >Save letter (decrypted)</button
         >
+            Save letter (decrypted)
+        </button>
     </div>
 
     <div class="card">
@@ -95,7 +96,11 @@
         <div class="gallery">
             {#each letter.sheets as sheet}
                 <div>
-                    <Doodle {sheet} colors={letter.colors}></Doodle>
+                    <Doodle
+                        {sheet}
+                        colors={letter.colors}
+                        stationery={letter.stationery}
+                    />
                 </div>
             {/each}
         </div>
