@@ -90,15 +90,16 @@ const BLOCK_SIZE: usize = 8;
 fn read_mask(bytes: &[u8]) -> Vec<Vec<u8>> {
     let mut image = vec![vec![0u8; 256]; 256];
     // .cloned() is cloning a u8. This operation is free
-    for (ni, i) in bytes.into_iter().take(32768).cloned().enumerate() {
-        let block_i = ni % 128;
-        let block_x = (ni / 128) % 32;
-        let block_y = ni / 4096;
-        let (x, y) = z_order_curve(block_i * 2);
+    for (l4_index, nibble) in bytes.into_iter().take(32768).cloned().enumerate() {
+        let block_index = l4_index / 32;
+        let px_index_within_block = l4_index % 128;
+        let block_x = block_index % 32;
+        let block_y = block_index / 32;
+        let (x, y) = z_order_curve(px_index_within_block * 2);
         let x = block_x * BLOCK_SIZE + x;
         let y = block_y * BLOCK_SIZE + y;
-        image[y][x] = i.pick_bits(0..=3);
-        image[y][x + 1] = i.pick_bits(4..=7);
+        image[y][x] = nibble.pick_bits(0..=3);
+        image[y][x + 1] = nibble.pick_bits(4..=7);
     }
     image
 }
