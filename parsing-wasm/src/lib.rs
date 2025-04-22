@@ -1,15 +1,18 @@
 use std::collections::HashMap;
 
-use parsing::color::Colors;
 use parsing::{
     bpk1::{BPK1File, BlocksHashMap, letter::Letter, stationery::Stationery},
+    color::Colors,
     mii_data::MiiData,
     sheet::Sheet,
 };
 use serde::Serialize;
 use serde_bytes::ByteBuf;
-use tsify::Tsify;
+use tsify::{Tsify, declare};
 use wasm_bindgen::prelude::*;
+
+#[declare]
+pub type JsBlocksMap = HashMap<String, Vec<ByteBuf>>;
 
 #[wasm_bindgen]
 pub fn init2() {
@@ -26,7 +29,7 @@ pub fn decompress_if_compressed(bytes: &[u8]) -> Vec<u8> {
     parsing::lzss::decompress_from_slice(bytes).unwrap_or_else(|_| bytes.to_vec())
 }
 
-fn blocks(v: BlocksHashMap) -> HashMap<String, Vec<ByteBuf>> {
+fn blocks(v: BlocksHashMap) -> JsBlocksMap {
     v.into_iter()
         .map(|(n, e)| (n, e.into_iter().map(Into::into).collect()))
         .collect()
@@ -38,7 +41,7 @@ pub struct JsStationery {
     background_2d: ByteBuf,
     background_3d: ByteBuf,
     mask: Vec<Vec<u8>>,
-    blocks: HashMap<String, Vec<ByteBuf>>,
+    blocks: JsBlocksMap,
 }
 
 impl From<Stationery> for JsStationery {
@@ -77,7 +80,7 @@ pub struct JsLetter {
     pub sender_mii: Option<JsMii>,
     pub stationery: Option<JsStationery>,
     pub sheets: Vec<Sheet>,
-    pub blocks: HashMap<String, Vec<ByteBuf>>,
+    pub blocks: JsBlocksMap,
     pub colors: Option<Colors>,
 }
 
