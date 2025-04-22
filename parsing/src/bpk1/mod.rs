@@ -12,7 +12,7 @@ use std::{
 use crate::{
     error::GenericResult,
     lzss::decompress_from_slice,
-    read::{BufReadExt, BufReadSeekExt, ReadExt},
+    read::{BufReadSeekExt, ReadExt},
 };
 
 pub struct BPK1Block {
@@ -42,7 +42,7 @@ where
     Self: Sized,
 {
     fn new_from_bpk1_bytes(data: &[u8]) -> GenericResult<Self> {
-        let mut reader: Box<dyn CursorTrait> = if has_bpk1_magic(&data) {
+        let mut reader: Box<dyn CursorTrait> = if has_bpk1_magic(data) {
             Box::new(Cursor::new(data))
         } else {
             let decompressed = decompress_from_slice(data)?;
@@ -118,7 +118,7 @@ impl BPK1File for BlocksHashMap {
         let mut map = Self::new();
         for block in blocks {
             map.entry(block.name.into_string()?)
-                .or_insert_with(|| vec![])
+                .or_insert_with(Vec::new)
                 .push(block.data);
         }
         Ok(map)

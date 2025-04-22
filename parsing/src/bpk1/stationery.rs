@@ -92,7 +92,7 @@ const BLOCK_SIZE: usize = 8;
 fn read_mask(bytes: &[u8]) -> Vec<Vec<u8>> {
     let mut image = vec![vec![0u8; 256]; 256];
     // .cloned() is cloning a u8. This operation is free
-    for (l4_index, byte) in bytes.into_iter().take(32768).cloned().enumerate() {
+    for (l4_index, byte) in bytes.iter().take(32768).cloned().enumerate() {
         let block_index = l4_index / 32;
         let px_index_within_block = l4_index % 128;
         let block_x = block_index % 32;
