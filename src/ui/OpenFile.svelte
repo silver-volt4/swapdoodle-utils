@@ -6,10 +6,6 @@
     } = $props();
     let fileInput: HTMLInputElement = $state()!;
 
-    function dragOver(e: Event) {
-        e.preventDefault();
-    }
-
     function fileOpen() {
         fileInput.click();
     }

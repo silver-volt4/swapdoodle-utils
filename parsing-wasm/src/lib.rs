@@ -82,14 +82,16 @@ pub struct JsLetter {
 }
 
 #[wasm_bindgen]
-pub fn parse_letter(bytes: &[u8]) -> JsLetter {
-    let letter: Letter = Letter::new_from_bpk1_bytes(bytes).unwrap();
-    JsLetter {
-        thumbnails: letter.thumbnails.into_iter().map(Into::into).collect(),
-        sender_mii: letter.sender_mii.map(Into::into),
-        stationery: letter.stationery.map(Into::into),
-        sheets: letter.sheets,
-        blocks: blocks(letter.blocks),
-        colors: letter.colors,
+pub fn parse_letter(bytes: &[u8]) -> Result<JsLetter, JsError> {
+    match Letter::new_from_bpk1_bytes(bytes) {
+        Ok(letter) => Ok(JsLetter {
+            thumbnails: letter.thumbnails.into_iter().map(Into::into).collect(),
+            sender_mii: letter.sender_mii.map(Into::into),
+            stationery: letter.stationery.map(Into::into),
+            sheets: letter.sheets,
+            blocks: blocks(letter.blocks),
+            colors: letter.colors,
+        }),
+        Err(_) => Err(JsError::new("Error reading file")),
     }
 }
