@@ -1,6 +1,7 @@
 <script lang="ts">
     import { decompress, type Letter } from "../lib/parsing/parsing";
     import { decompress_if_compressed } from "../lib/parsing/wasm/parsing_wasm";
+    import BlobImage from "./BlobImage.svelte";
     import Doodle from "./Doodle.svelte";
 
     let {
@@ -15,10 +16,12 @@
         let blob = new Blob([data], {
             type: "application/octet-stream",
         });
+        let downloadUrl = URL.createObjectURL(blob);
         let a = document.createElement("a");
         a.download = as;
-        a.href = window.URL.createObjectURL(blob);
+        a.href = downloadUrl;
         a.click();
+        URL.revokeObjectURL(downloadUrl);
     }
 </script>
 
@@ -79,11 +82,9 @@
                     <p>
                         <b>{title}</b>
                     </p>
-                    <img
+                    <BlobImage
                         class="thumbnail"
-                        src={URL.createObjectURL(
-                            new Blob([thumbnail], { type: "image/jpeg" }),
-                        )}
+                        src={new Blob([thumbnail], { type: "image/jpeg" })}
                         alt={title}
                     />
                 </div>
@@ -128,9 +129,9 @@
 
             <div class="gallery">
                 {#each [letter.stationery.background_2d, letter.stationery.background_3d] as stationery}
-                    <img
-                        src={URL.createObjectURL(new Blob([stationery]))}
-                        alt={""}
+                    <BlobImage
+                        src={new Blob([stationery])}
+                        alt={"Stationery"}
                     />
                 {/each}
             </div>
@@ -176,7 +177,7 @@
         flex-wrap: wrap;
     }
 
-    img.thumbnail {
+    .gallery :global(img.thumbnail) {
         height: 128px;
         width: 128px;
     }
