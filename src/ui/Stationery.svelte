@@ -7,22 +7,20 @@
 
     let { stationery }: Props = $props();
 
-    let stationery2d = $derived(
-        URL.createObjectURL(
+    let stationery2d: string = $state("");
+    let stationery3d: string = $state("");
+    let stationeryMask: string = $state("");
+
+    $effect(() => {
+        stationery2d = URL.createObjectURL(
             new Blob([stationery.background_2d], { type: "image/jpeg" }),
-        ),
-    );
-
-    let stationery3d = $derived(
-        URL.createObjectURL(
+        );
+        stationery3d = URL.createObjectURL(
             new Blob([stationery.background_3d], { type: "image/jpeg" }),
-        ),
-    );
+        );
 
-    let stationeryMask = $derived.by(() => {
-        let c = document.createElement("canvas");
-        c.width = c.height = 256;
-        let ctx = c.getContext("2d");
+        let canvas = new OffscreenCanvas(256, 256);
+        let ctx = canvas.getContext("2d");
         if (!ctx)
             throw new Error(
                 "Unable to render Stationery mask (get canvas context failed)",
@@ -39,10 +37,25 @@
         }
 
         ctx.putImageData(iData, 0, 0);
-        return c.toDataURL();
+
+        let valid = true;
+        canvas.convertToBlob().then((blob) => {
+            // Prevent a rare memory leak: 
+            // convertToBlob() -> teardown() -> then() -> stationeryMask is not revoked
+            if (!valid) return;
+            stationeryMask = URL.createObjectURL(blob);
+        });
+
+        const teardown = () => {
+            valid = false;
+            URL.revokeObjectURL(stationery2d);
+            URL.revokeObjectURL(stationery3d);
+            URL.revokeObjectURL(stationeryMask);
+        };
+
+        return teardown;
     });
 </script>
-
 
 <div
     class="stationery"
