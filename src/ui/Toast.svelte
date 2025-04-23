@@ -27,6 +27,7 @@
         flex-direction: column;
         padding: 2em 1em;
         box-sizing: border-box;
+        pointer-events: none;
     }
 
     .toast {
