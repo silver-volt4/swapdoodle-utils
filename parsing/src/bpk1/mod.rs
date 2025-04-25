@@ -31,7 +31,7 @@ pub enum BPK1Error {
 
 impl Display for BPK1Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Cannot extract: Bad magic")
+        write!(f, "Bad BPK1 magic")
     }
 }
 
@@ -46,9 +46,6 @@ where
             Box::new(Cursor::new(data))
         } else {
             let decompressed = decompress_from_slice(data)?;
-            // &[u8] implements Read so I can give it a &mut &[u8]
-            // which looks kinda weird because it's a mutable
-            // reference to an immutable reference but it works
             if !has_bpk1_magic(&decompressed) {
                 Err(BPK1Error::BadMagic)?;
             }
