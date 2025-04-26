@@ -53,7 +53,7 @@ impl Display for MiiDeserializeError {
 
 impl Error for MiiDeserializeError {}
 
-fn name_from_bytes(bytes: [u8; 20]) -> String {
+pub fn name_from_bytes<const N: usize>(bytes: [u8; N]) -> String {
     let name: Vec<u16> = bytes
         .chunks_exact(2)
         .take_while(|b| b[0] | b[1] != 0)
