@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build --base=\"./\"",
+    "build-wasm": "wasm-pack build parsing-wasm --out-dir ../src/lib/parsing/wasm --target web",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
   },

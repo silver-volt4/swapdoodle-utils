@@ -1,6 +1,8 @@
 <script lang="ts">
-    import { Letter } from "./lib/bpk1";
+    import { parse_letter, type Letter } from "./lib/parsing/parsing";
+    import toast from "./lib/toast.svelte";
     import OpenFile from "./ui/OpenFile.svelte";
+    import Toast from "./ui/Toast.svelte";
     import ViewFile from "./ui/ViewFile.svelte";
 
     function dragOver(e: Event) {
@@ -23,21 +25,32 @@
             if (!content) {
                 return;
             }
-            letter = new Letter(content);
+            letterData = new Uint8Array(content);
+            try {
+                letter = parse_letter(letterData);
+            } catch {
+                toast.pushToast({
+                    title: "Error reading file",
+                    message: "This file does not seem to be a Swapdoodle Letter."
+                })
+            }
         };
+
         reader.readAsArrayBuffer(file);
     }
 
-    let letter: Letter | undefined = $state.raw();
+    let letterData: Uint8Array | undefined = $state();
+    let letter: Letter | undefined = $state();
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="root" ondragover={dragOver} ondrop={drop}>
-    {#if !letter}
+    {#if !(letter && letterData)}
         <OpenFile onfileaccepted={(file) => readFile(file)} />
     {:else}
-        <ViewFile {letter}></ViewFile>
+        <ViewFile {letter} {letterData}></ViewFile>
     {/if}
+    <Toast></Toast>
 </div>
 
 <style>

@@ -1,29 +1,65 @@
 <script lang="ts">
-    import { Letter } from "../lib/bpk1";
+    import { decompress, type Letter } from "../lib/parsing/parsing";
+    import { decompress_if_compressed } from "../lib/parsing/wasm/parsing_wasm";
+    import BlobImage from "./BlobImage.svelte";
+    import Doodle from "./Doodle.svelte";
 
     let {
-        letter: letter,
+        letter,
+        letterData,
     }: {
         letter: Letter;
+        letterData: Uint8Array;
     } = $props();
 
-    function download(data: ArrayBufferLike, as: string) {
+    function download(data: Uint8Array, as: string) {
         let blob = new Blob([data], {
             type: "application/octet-stream",
         });
+        let downloadUrl = URL.createObjectURL(blob);
         let a = document.createElement("a");
         a.download = as;
-        a.href = window.URL.createObjectURL(blob);
+        a.href = downloadUrl;
         a.click();
+        URL.revokeObjectURL(downloadUrl);
     }
 </script>
+
+{#snippet bpk1BlockList(blocksMap: Map<string, Uint8Array[]>)}
+    <div class="sections">
+        {#each blocksMap.entries() as [name, blocks]}
+            {#if blocks.length <= 1}
+                <button onclick={() => download(blocks[0], `${name}.bin`)}>
+                    {name}
+                </button>
+            {:else}
+                <div class="btn noclick">
+                    <span style="margin-right: 0.5em;">
+                        {name}
+                    </span>
+                    {#each blocks as block, index}
+                        <button
+                            onclick={() =>
+                                download(block, `${name}$${index}.bin`)}
+                        >
+                            #{index + 1}
+                        </button>
+                    {/each}
+                </div>
+            {/if}
+        {/each}
+    </div>
+{/snippet}
 
 <div class="file">
     <div class="header">
         <div class="title">Swapdoodle file viewer</div>
-        <button onclick={() => download(letter.data.buffer, "letter.bpk")}
-            >Save letter (decrypted)</button
+        <button
+            onclick={() =>
+                download(decompress_if_compressed(letterData), "letter.bpk")}
         >
+            Save letter (decompressed)
+        </button>
     </div>
 
     <div class="card">
@@ -34,16 +70,7 @@
             section
         </p>
 
-        <div class="sections">
-            {#each letter.blocks.keys() as name}
-                <button
-                    onclick={() =>
-                        download(letter.blocks.get(name)!, `${name}.bin`)}
-                >
-                    {name}
-                </button>
-            {/each}
-        </div>
+        {@render bpk1BlockList(letter.blocks)}
     </div>
 
     <div class="card">
@@ -55,9 +82,9 @@
                     <p>
                         <b>{title}</b>
                     </p>
-                    <img
+                    <BlobImage
                         class="thumbnail"
-                        src={URL.createObjectURL(thumbnail)}
+                        src={new Blob([thumbnail], { type: "image/jpeg" })}
                         alt={title}
                     />
                 </div>
@@ -66,32 +93,54 @@
     </div>
 
     <div class="card">
-        <div class="card-header">Sender</div>
-        <div class="mii">
-            <img
-                class="mii"
-                src="https://studio.mii.nintendo.com/miis/image.png?data={letter
-                    .sender?.studioData}&width=128&type=face"
-                alt=""
-            />
-            <div class="name">
-                {letter.sender?.name}
-                {#if letter.sender?.creator}
-                    (mii by: {letter.sender?.creator})
-                {/if}
-            </div>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-header">Stationery</div>
-        <p>Name: {letter.stationery?.name}</p>
+        <div class="card-header">Doodles</div>
         <div class="gallery">
-            {#each letter.stationery?.image ?? [] as stationery}
-                <img src={URL.createObjectURL(stationery)} alt={""} />
+            {#each letter.sheets as sheet (sheet)}
+                <div>
+                    <Doodle
+                        {sheet}
+                        colors={letter.colors}
+                        stationery={letter.stationery}
+                    />
+                </div>
             {/each}
         </div>
     </div>
+
+    {#if letter.sender_mii}
+        <div class="card">
+            <div class="card-header">Sender</div>
+            <div class="mii">
+                <img class="mii" src={letter.sender_mii.url} alt="" />
+                <div class="name">
+                    {letter.sender_mii.name}
+                    {#if letter.sender_mii.author_name}
+                        (mii by: {letter.sender_mii.author_name})
+                    {/if}
+                </div>
+            </div>
+        </div>
+    {/if}
+
+    {#if letter.stationery}
+        <div class="card">
+            <div class="card-header">Stationery</div>
+            <p>Name: {letter.stationery.name}</p>
+
+            <div class="gallery">
+                {#each [letter.stationery.background_2d, letter.stationery.background_3d] as stationery}
+                    <BlobImage
+                        src={new Blob([stationery])}
+                        alt={"Stationery"}
+                    />
+                {/each}
+            </div>
+
+            <br />
+
+            {@render bpk1BlockList(letter.stationery.blocks)}
+        </div>
+    {/if}
 </div>
 
 <style>
@@ -128,7 +177,7 @@
         flex-wrap: wrap;
     }
 
-    img.thumbnail {
+    .gallery :global(img.thumbnail) {
         height: 128px;
         width: 128px;
     }
@@ -150,7 +199,8 @@
         border-radius: 50%;
     }
 
-    button {
+    button,
+    .btn {
         padding: 0.5em 1em;
         background-color: white;
         border: none;
@@ -159,6 +209,10 @@
             0 3px 6px rgba(0, 0, 0, 0.23);
         cursor: pointer;
         font-size: 18px;
+    }
+
+    .btn.noclick {
+        cursor: unset;
     }
 
     .header {

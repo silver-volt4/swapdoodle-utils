@@ -6,10 +6,6 @@
     } = $props();
     let fileInput: HTMLInputElement = $state()!;
 
-    function dragOver(e: Event) {
-        e.preventDefault();
-    }
-
     function fileOpen() {
         fileInput.click();
     }
@@ -27,6 +23,13 @@
         <h1>Swapdoodle File Viewer</h1>
         <p>Click here or drag a file onto this page to open it</p>
     </button>
+    <a
+        href="https://github.com/Silver-Volt4/swapdoodle-utils/wiki/Dumping-letter-files"
+        target="_blank"
+        class="hint"
+    >
+        Where do I find Letter/Doodle files?
+    </a>
 </div>
 <input bind:this={fileInput} type="file" onchange={fileSelected} />
 
@@ -50,5 +53,9 @@
 
     input {
         display: none;
+    }
+
+    a.hint {
+        margin-top: 1em;
     }
 </style>
