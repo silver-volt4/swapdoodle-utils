@@ -39,8 +39,8 @@
         reader.readAsArrayBuffer(file);
     }
 
-    let letterData: Uint8Array | undefined = $state.raw();
-    let letter: Letter | undefined = $state.raw();
+    let letterData: Uint8Array | undefined = $state();
+    let letter: Letter | undefined = $state();
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->

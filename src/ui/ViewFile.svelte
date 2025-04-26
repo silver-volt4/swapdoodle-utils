@@ -95,7 +95,7 @@
     <div class="card">
         <div class="card-header">Doodles</div>
         <div class="gallery">
-            {#each letter.sheets as sheet}
+            {#each letter.sheets as sheet (sheet)}
                 <div>
                     <Doodle
                         {sheet}

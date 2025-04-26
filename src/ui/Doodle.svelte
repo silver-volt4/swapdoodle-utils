@@ -57,7 +57,7 @@
         }
     }
 
-    onMount(() => {
+    $effect(() => {
         draw();
     });
 </script>
