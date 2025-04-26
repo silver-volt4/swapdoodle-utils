@@ -58,7 +58,7 @@
             onclick={() =>
                 download(decompress_if_compressed(letterData), "letter.bpk")}
         >
-            Save letter (decrypted)
+            Save letter (decompressed)
         </button>
     </div>
 
