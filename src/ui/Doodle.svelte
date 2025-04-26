@@ -1,8 +1,9 @@
 <script lang="ts">
+    import { onMount } from "svelte";
     import type { Sheet, Colors, Stationery } from "../lib/parsing/parsing";
     import StationeryComponent from "./Stationery.svelte";
 
-    let canvas: HTMLCanvasElement = $state()!;
+    let canvas: HTMLCanvasElement | undefined = $state();
 
     interface Props {
         sheet: Sheet;
@@ -23,7 +24,7 @@
     }
 
     async function draw() {
-        let c = canvas.getContext("2d");
+        let c = canvas?.getContext("2d");
         if (!c) return;
 
         c.clearRect(0, 0, 255, 255);
@@ -56,7 +57,7 @@
         }
     }
 
-    $effect(() => {
+    onMount(() => {
         draw();
     });
 </script>
