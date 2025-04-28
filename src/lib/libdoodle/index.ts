@@ -8,7 +8,7 @@ import init, {
     type SheetStroke,
     type Colors,
     type JsStationery as Stationery
-} from "./wasm/parsing_wasm";
+} from "./wasm/libdoodle_wasm";
 
 await init();
 init2();

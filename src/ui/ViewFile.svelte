@@ -1,6 +1,5 @@
 <script lang="ts">
-    import { decompress, type Letter } from "../lib/parsing/parsing";
-    import { decompress_if_compressed } from "../lib/parsing/wasm/parsing_wasm";
+    import { decompress_if_compressed, type Letter } from "../lib/libdoodle";
     import BlobImage from "./BlobImage.svelte";
     import Doodle from "./Doodle.svelte";
 
