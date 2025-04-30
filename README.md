@@ -1,1 +1,1 @@
-# [Swapdoodle file viewer](http://silver-volt4.cz/swapdoodle-utils/)
+# [Swapdoodle file viewer](https://swapdoodlerevival.github.io/swapdoodle-utils/)
