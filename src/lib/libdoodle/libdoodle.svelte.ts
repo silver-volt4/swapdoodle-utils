@@ -74,7 +74,7 @@ export class LetterFile {
         return new Promise((resolve, reject) => {
             let reader = new FileReader();
 
-            reader.onload = (readerEvent) => {
+            reader.onload = async (readerEvent) => {
                 let content = readerEvent.target?.result as ArrayBuffer | null;
                 if (!content) {
                     reject(Error("Could not read file content"));
@@ -82,26 +82,28 @@ export class LetterFile {
                 }
 
                 let letterData = new Uint8Array(content);
-
                 try {
-                    let letter = parse_letter(letterData);
-                    let file = new LetterFile();
-                    postProcessLetter(letter).then(
-                        letter => {
-                            file.letter = letter;
-                            resolve(file);
-                        }
-                    )
-                    file.letterData = letterData;
-                    return;
-                } catch {
-                    // TODO: Smarter errors from Rust
-                    reject(Error("This file does not seem to be a Swapdoodle Letter."))
+                    resolve(await this.readUint8Array(letterData));
+                } catch (e) {
+                    reject(e);
                 }
             };
 
             reader.readAsArrayBuffer(file);
         })
+    }
+
+    public static async readUint8Array(letterData: Uint8Array<ArrayBuffer>) {
+        try {
+            let letter = parse_letter(letterData);
+            let file = new LetterFile();
+            file.letter = await postProcessLetter(letter);
+            file.letterData = letterData;
+            return file;
+        } catch {
+            // TODO: Smarter errors from Rust
+            throw new Error("This file does not seem to be a Swapdoodle Letter.")
+        }
     }
 
     public downloadDecompressedBpk(fileName: string) {
