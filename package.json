@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@jamescoyle/svelte-icon": "^0.1.1",
-    "@mdi/js": "^7.4.47"
+    "@mdi/js": "^7.4.47",
+    "base64-arraybuffer": "^1.0.2"
   }
 }

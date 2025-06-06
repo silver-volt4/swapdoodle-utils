@@ -1,4 +1,7 @@
 <script lang="ts">
+    import Dialog from "../components/Dialog.svelte";
+    import { pushDialog } from "../lib/dialog.svelte";
+
     let {
         onfileaccepted,
     }: {
@@ -32,6 +35,7 @@
     </a>
 </div>
 <input bind:this={fileInput} type="file" onchange={fileSelected} />
+
 
 <style>
     .open-file {
