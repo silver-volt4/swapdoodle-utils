@@ -5,9 +5,22 @@ html {
 }
 
 * {
-    font-family: Inter, Helvetica, Arial, sans-serif ;
+    font-family: Inter, Helvetica, Arial, sans-serif;
 }
 
-html, body {
+html,
+body {
     margin: 0;
+}
+
+.depth {
+    box-shadow:
+        0 3px 6px rgba(0, 0, 0, 0.16),
+        0 3px 6px rgba(0, 0, 0, 0.23);
+}
+
+button.base {
+    cursor: pointer;
+    border: none;
+    background: none;
 }

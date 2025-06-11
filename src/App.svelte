@@ -1,18 +1,21 @@
 <script lang="ts">
+    import packageFile from "../package.json";
     import { LetterFile } from "./lib/libdoodle/libdoodle.svelte";
     import { warn } from "./lib/toast.svelte";
-    import OpenFile from "./pages/OpenFile.svelte";
     import Toast from "./components/Toast.svelte";
     import ViewFile from "./pages/ViewFile.svelte";
     import Dialog from "./components/Dialog.svelte";
-    import { pushDialog } from "./lib/dialog.svelte";
-    import {
-        encode as b64encode,
-        decode as b64decode,
-    } from "base64-arraybuffer";
-    import { onMount } from "svelte";
+    import MenuButton from "./components/MenuBar/MenuButton.svelte";
 
-    const NEW_TAB_HASH = "#transfer-file";
+    type OpenFile = {
+        file: LetterFile;
+        name: string;
+    };
+
+    let fileInput: HTMLInputElement = $state()!;
+
+    let files: OpenFile[] = $state([]);
+    let focusedFile: OpenFile | undefined = $state();
 
     function dragOver(e: Event) {
         e.preventDefault();
@@ -21,48 +24,34 @@
     function drop(e: DragEvent) {
         e.preventDefault();
 
-        if (blockFileDrag) return;
+        let files = e.dataTransfer?.files;
+        if (!files) return;
+        for (let file of files) {
+            if (file) {
+                readFile(file);
+            }
+        }
+    }
 
-        let file = e.dataTransfer?.files[0];
+    function fileOpen() {
+        fileInput.click();
+    }
+
+    function fileSelected(e: Event) {
+        let file = (e.target as HTMLInputElement | null)?.files?.[0];
         if (file) {
             readFile(file);
         }
     }
 
     async function readFile(file: File) {
-        if (letter) {
-            try {
-                blockFileDrag = true;
-                let result = await pushDialog({
-                    title: "Open a file...",
-                    message:
-                        "A new file has been dragged into the application. What do you wish to do?",
-                    buttons: [
-                        {
-                            id: "replace",
-                            label: "Open",
-                        },
-                        {
-                            id: "new-tab",
-                            label: "Open in new tab",
-                        },
-                        {
-                            id: "cancel",
-                            label: "Cancel",
-                        },
-                    ],
-                });
-                if (result == "cancel") {
-                    return;
-                } else if (result == "new-tab") {
-                    openFileInNewTab(file);
-                }
-            } finally {
-                blockFileDrag = false;
-            }
-        }
         try {
-            letter = await LetterFile.readFile(file);
+            let letter = await LetterFile.readFile(file);
+            focusedFile = {
+                name: file.name,
+                file: letter,
+            };
+            files.push(focusedFile);
         } catch (e) {
             let message = (e as Partial<Error>)?.message;
             warn({
@@ -71,45 +60,89 @@
             });
         }
     }
-
-    async function openFileInNewTab(file: File) {
-        let fileBase64 = b64encode(await file.arrayBuffer());
-        localStorage.setItem("transferredFile", fileBase64);
-        let openUrl = new URL(window.location.href);
-        openUrl.hash = NEW_TAB_HASH;
-        window.open(openUrl, "_blank");
-    }
-
-    onMount(async () => {
-        if (window.location.hash == NEW_TAB_HASH) {
-            let data = localStorage.getItem("transferredFile");
-            if (data) {
-                localStorage.removeItem("transferredFile");
-                letter = await LetterFile.readUint8Array(
-                    new Uint8Array(b64decode(data)),
-                );
-            }
-            window.location.href = "#";
-        }
-    });
-
-    let blockFileDrag = false;
-    let letter: LetterFile | undefined = $state();
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="root" ondragover={dragOver} ondrop={drop}>
-    {#if !letter}
-        <OpenFile onfileaccepted={(file) => readFile(file)} />
-    {:else}
-        <ViewFile file={letter}></ViewFile>
-    {/if}
-    <Toast></Toast>
-    <Dialog></Dialog>
+    <div class="bar menu depth">
+        <MenuButton label="File">
+            <MenuButton label="Open..." onclick={fileOpen}></MenuButton>
+        </MenuButton>
+
+        <span class="end">
+            Swapdoodle-Utils v{packageFile.version}
+        </span>
+    </div>
+    <div class="bar files">
+        {#each files as file}
+            <button
+                onclick={() => (focusedFile = file)}
+                class="base {file === focusedFile ? 'focused' : ''}"
+            >
+                {file.name}
+            </button>
+        {/each}
+    </div>
+    <input bind:this={fileInput} type="file" onchange={fileSelected} />
+    <div class="viewport">
+        {#if focusedFile}
+            <ViewFile file={focusedFile.file}></ViewFile>
+        {/if}
+    </div>
 </div>
 
-<style>
+<Toast></Toast>
+<Dialog></Dialog>
+
+<style lang="scss">
     .root {
-        min-height: 100vh;
+        height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+
+        input[type="file"] {
+            display: none;
+        }
+    }
+
+    .viewport {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    .bar {
+        display: flex;
+        width: 100%;
+        background-color: white;
+
+        &.menu {
+            z-index: 1;
+        }
+
+        &.files {
+            background-color: silver;
+
+            button {
+                border: 0;
+                background: none;
+                padding: 8px;
+                font-weight: bold;
+                border-bottom: solid 2px transparent;
+                &.focused {
+                    background-color: rgba(0, 0, 0, 0.1);
+                    border-bottom-color: black;
+                }
+            }
+        }
+
+        .end {
+            flex: 1;
+            text-align: end;
+            align-self: center;
+            padding-right: 8px;
+        }
     }
 </style>

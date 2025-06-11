@@ -18,12 +18,13 @@
 
 <style>
     .toasts {
+        z-index: 10;
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         display: flex;
-        align-items: center;
+        align-items: flex-end;
         flex-direction: column;
         padding: 2em 1em;
         box-sizing: border-box;
