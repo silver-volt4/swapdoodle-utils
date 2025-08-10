@@ -1,3 +1,6 @@
 [workspace]
 resolver = "3"
 members = ["libdoodle-wasm"]
+
+[patch."https://github.com/swapdoodlerevival/libdoodle"]
+libdoodle = { path = "./.work/libdoodle" }

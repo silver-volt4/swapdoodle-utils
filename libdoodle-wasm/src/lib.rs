@@ -1,12 +1,11 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, f64::consts::E, ffi::CString, str::FromStr};
 
 use libdoodle::{
-    bpk1::{BPK1File, BlocksHashMap, letter::Letter, stationery::Stationery},
-    color::Colors,
-    mii_data::MiiData,
-    sheet::Sheet,
+    blocks::{colslt1::Colors, miistd1::MiiData, sheet1::Sheet},
+    bpk1::{BPK1Block, BPK1Blocks, BPK1File},
+    files::stationery::Stationery,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
 use tsify::{Tsify, declare};
 use wasm_bindgen::prelude::*;
@@ -29,33 +28,6 @@ pub fn decompress_if_compressed(bytes: &[u8]) -> Vec<u8> {
     libdoodle::lzss::decompress_from_slice(bytes).unwrap_or_else(|_| bytes.to_vec())
 }
 
-fn blocks(v: BlocksHashMap) -> JsBlocksMap {
-    v.into_iter()
-        .map(|(n, e)| (n, e.into_iter().map(Into::into).collect()))
-        .collect()
-}
-
-#[derive(Tsify, Serialize)]
-pub struct JsStationery {
-    name: String,
-    background_2d: ByteBuf,
-    background_3d: ByteBuf,
-    mask: Vec<Vec<u8>>,
-    blocks: JsBlocksMap,
-}
-
-impl From<Stationery> for JsStationery {
-    fn from(value: Stationery) -> Self {
-        JsStationery {
-            name: value.name,
-            background_2d: value.background_2d.into(),
-            background_3d: value.background_3d.into(),
-            mask: value.mask,
-            blocks: blocks(value.blocks),
-        }
-    }
-}
-
 #[derive(Tsify, Serialize)]
 pub struct JsMii {
     pub url: String,
@@ -73,28 +45,45 @@ impl From<MiiData> for JsMii {
     }
 }
 
-#[derive(Tsify, Serialize)]
-#[tsify(into_wasm_abi)]
-pub struct JsLetter {
-    pub thumbnails: Vec<ByteBuf>,
-    pub sender_mii: Option<JsMii>,
-    pub stationery: Option<JsStationery>,
-    pub sheets: Vec<Sheet>,
-    pub blocks: JsBlocksMap,
-    pub colors: Option<Colors>,
+#[wasm_bindgen]
+pub fn parse_bpk1(bytes: &[u8]) -> Result<Vec<BPK1Block>, JsError> {
+    match BPK1Blocks::new_from_bpk1_bytes(bytes) {
+        Ok(letter) => Ok(letter),
+        Err(e) => Err(JsError::new(format!("{:#?}", e).as_str())),
+    }
+}
+
+// TODO: surely this could be generated somehow?
+// TODO: nicer errors
+
+#[wasm_bindgen]
+pub fn build_bpk1(blocks: Vec<BPK1Block>) -> Result<Vec<u8>, JsError> {
+    match BPK1Blocks::bytes_from_bpk1_blocks(blocks) {
+        Ok(data) => Ok(data.into()),
+        Err(_) => Err(JsError::new("Failed")),
+    }
 }
 
 #[wasm_bindgen]
-pub fn parse_letter(bytes: &[u8]) -> Result<JsLetter, JsError> {
-    match Letter::new_from_bpk1_bytes(bytes) {
-        Ok(letter) => Ok(JsLetter {
-            thumbnails: letter.thumbnails.into_iter().map(Into::into).collect(),
-            sender_mii: letter.sender_mii.map(Into::into),
-            stationery: letter.stationery.map(Into::into),
-            sheets: letter.sheets,
-            blocks: blocks(letter.blocks),
-            colors: letter.colors,
-        }),
-        Err(_) => Err(JsError::new("Error reading file")),
+pub fn parse_colors(block: &BPK1Block) -> Result<Colors, JsError> {
+    match Colors::try_from(block.data.as_slice()) {
+        Ok(letter) => Ok(letter),
+        Err(e) => Err(JsError::new(format!("{:#?}", e).as_str())),
+    }
+}
+
+#[wasm_bindgen]
+pub fn parse_sheet(block: &BPK1Block) -> Result<Sheet, JsError> {
+    match Sheet::try_from(block.data.as_slice()) {
+        Ok(letter) => Ok(letter),
+        Err(e) => Err(JsError::new(format!("{:#?}", e).as_str())),
+    }
+}
+
+#[wasm_bindgen]
+pub fn parse_stationery(block: &BPK1Block) -> Result<Stationery, JsError> {
+    match Stationery::try_from(block.data.as_slice()) {
+        Ok(letter) => Ok(letter),
+        Err(e) => Err(JsError::new(format!("{:#?}", e).as_str())),
     }
 }

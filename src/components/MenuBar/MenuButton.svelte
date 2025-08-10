@@ -78,7 +78,7 @@
         transition: opacity 0.2s;
 
         :global(button) {
-            min-width: 100px;
+            min-width: 200px;
         }
     }
 </style>

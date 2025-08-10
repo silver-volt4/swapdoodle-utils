@@ -1,63 +1,34 @@
 <script lang="ts">
     import packageFile from "../package.json";
-    import { LetterFile } from "./lib/libdoodle/libdoodle.svelte";
+    import { BPK1File } from "./lib/libdoodle/libdoodle.svelte";
     import { warn } from "./lib/toast.svelte";
     import Toast from "./components/Toast.svelte";
-    import ViewFile from "./pages/ViewFile.svelte";
+    import ViewFile from "./viewer/ViewFile.svelte";
     import Dialog from "./components/Dialog.svelte";
     import MenuButton from "./components/MenuBar/MenuButton.svelte";
-
-    type OpenFile = {
-        file: LetterFile;
-        name: string;
-    };
-
-    let fileInput: HTMLInputElement = $state()!;
-
-    let files: OpenFile[] = $state([]);
-    let focusedFile: OpenFile | undefined = $state();
+    import current from "./lib/dialog.svelte";
+    import { askForFile, files, openNewFile, type OpenFile, getCurrentFile, setCurrentFile } from "./lib/files.svelte";
 
     function dragOver(e: Event) {
         e.preventDefault();
     }
 
-    function drop(e: DragEvent) {
+    async function drop(e: DragEvent) {
         e.preventDefault();
 
         let files = e.dataTransfer?.files;
         if (!files) return;
         for (let file of files) {
             if (file) {
-                readFile(file);
+                await openNewFile(file);
             }
         }
     }
 
-    function fileOpen() {
-        fileInput.click();
-    }
-
-    function fileSelected(e: Event) {
-        let file = (e.target as HTMLInputElement | null)?.files?.[0];
-        if (file) {
-            readFile(file);
-        }
-    }
-
-    async function readFile(file: File) {
-        try {
-            let letter = await LetterFile.readFile(file);
-            focusedFile = {
-                name: file.name,
-                file: letter,
-            };
-            files.push(focusedFile);
-        } catch (e) {
-            let message = (e as Partial<Error>)?.message;
-            warn({
-                title: "Error reading file",
-                message: message ?? "Unknown error",
-            });
+    async function fileOpen() {
+        let files = await askForFile();
+        for (let file of files ?? []) {
+           await openNewFile(file);
         }
     }
 </script>
@@ -66,7 +37,14 @@
 <div class="root" ondragover={dragOver} ondrop={drop}>
     <div class="bar menu depth">
         <MenuButton label="File">
-            <MenuButton label="Open..." onclick={fileOpen}></MenuButton>
+            <MenuButton label="Open" onclick={fileOpen} />
+            {#if getCurrentFile}
+                <MenuButton
+                    label="Save (decompressed BPK1 archive)"
+                    onclick={() =>
+                        getCurrentFile()!.file.downloadDecompressedBpk("letter.bpk")}
+                />
+            {/if}
         </MenuButton>
 
         <span class="end">
@@ -74,19 +52,18 @@
         </span>
     </div>
     <div class="bar files">
-        {#each files as file}
+        {#each files as file, i}
             <button
-                onclick={() => (focusedFile = file)}
-                class="base {file === focusedFile ? 'focused' : ''}"
+                onclick={() => (setCurrentFile(file))}
+                class="base {getCurrentFile() === file ? 'focused' : ''}"
             >
                 {file.name}
             </button>
         {/each}
     </div>
-    <input bind:this={fileInput} type="file" onchange={fileSelected} />
     <div class="viewport">
-        {#if focusedFile}
-            <ViewFile file={focusedFile.file}></ViewFile>
+        {#if getCurrentFile()}
+            <ViewFile file={getCurrentFile()!.file}></ViewFile>
         {/if}
     </div>
 </div>
