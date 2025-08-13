@@ -6,6 +6,7 @@
     import { askForFile } from "../lib/files.svelte";
     import Icon from "@jamescoyle/svelte-icon";
     import { mdiPlus, mdiDownload } from "@mdi/js";
+    import { pushDialog } from "../lib/dialog.svelte";
 
     const READERS: { [key: string]: { default: () => SvelteComponent } } =
         import.meta.glob(["./blocks/*.svelte", "!./blocks/Unknown.svelte"], {
@@ -36,39 +37,49 @@
     }
 </script>
 
-<div class="flex grow">
-    <div class="md:w-70 w-30 flex flex-col shrink-0 shadow-xl bg-zinc-100">
-        <div class="p-3 bg-zinc-300 border-b-2 border-b-zinc-500 font-bold">
-            File options
-        </div>
-        <button
-            class="btn px-3 py-2 text-start hover:bg-zinc-200 flex gap-2"
-            onclick={() => file.downloadDecompressedBpk("export.bpk1")}
-        >
-            <Icon path={mdiDownload} type="mdi" color="black"></Icon>
-            Save (uncompressed BPK1)
-        </button>
+{#snippet header(label: string)}
+    <div class="p-3 bg-green-300 border-b-2 border-b-green-500 font-bold">
+        {label}
+    </div>
+{/snippet}
 
-        <div class="p-3 bg-zinc-300 border-b-2 border-b-zinc-500 font-bold">
-            BPK1 Blocks
-        </div>
+{#snippet button(
+    label: string,
+    onclick: (e: Event) => any,
+    icon: string | null = null,
+    active: boolean = false,
+)}
+    <button
+        class="btn px-3 py-2 text-start transition flex gap-2 {active
+            ? 'bg-green-400'
+            : 'hover:bg-green-200'}"
+        {onclick}
+    >
+        {#if icon}
+            <Icon path={icon} type="mdi" color="black"></Icon>
+        {/if}
+        {label}
+    </button>
+{/snippet}
+
+<div class="flex grow">
+    <div class="md:w-70 w-30 flex flex-col shrink-0 shadow-xl bg-green-100">
+        {@render header("File options")}
+        {@render button("Save BPK1 (uncompressed)", () =>
+            file.downloadDecompressedBpk("export.bpk1"),
+            mdiDownload
+        )}
+
+        {@render header("BPK1 Blocks")}
         {#each file.blocks as block, i}
-            <button
-                class="btn px-3 py-2 text-start {file.selectedBlock === block
-                    ? 'bg-zinc-400'
-                    : 'hover:bg-zinc-200'} transition"
-                onclick={() => file.selectBlock(i)}
-            >
-                {block.name}
-            </button>
+            {@render button(
+                block.name,
+                () => file.selectBlock(i),
+                null,
+                file.selectedBlock === block,
+            )}
         {/each}
-        <button
-            class="btn px-3 py-2 text-start hover:bg-zinc-200 flex gap-2"
-            onclick={insertBlock}
-        >
-            <Icon path={mdiPlus} type="mdi" color="black"></Icon>
-            Insert block
-        </button>
+        {@render button("Insert block", insertBlock, mdiPlus)}
     </div>
     <div class="grow p-4 overflow-y-auto">
         {#if file.selectedBlock}

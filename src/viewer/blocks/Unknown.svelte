@@ -15,7 +15,7 @@
 </script>
 
 <Card style="warning" title="Unknown block" class="mb-2">
-    This block is not yet supported and it not will be parsed. <br />
+    This block is not yet supported and it will not be parsed. <br />
     The hex dump of its content is shown below.
 </Card>
 
