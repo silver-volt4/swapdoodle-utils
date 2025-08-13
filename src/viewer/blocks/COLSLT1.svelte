@@ -18,17 +18,29 @@
 </script>
 
 {#each colors.colors as color}
-    <div>
+    <div class="pen">
         <div
-            class="pen"
+            class="sample"
             style="background-color: rgb({color.r},{color.g},{color.b})"
         ></div>
+
+        {color.name}
     </div>
 {/each}
 
-<style>
+<style lang="scss">
     .pen {
-        width: 20px;
-        height: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+        font-weight: bold;
+
+        .sample {
+            width: 30px;
+            height: 30px;
+            display: inline-block;
+            border-radius: 50%;
+        }
     }
 </style>

@@ -14,7 +14,7 @@
         file,
     }: {
         file: BPK1File;
-    } = $props();
+    } = $props(); 
 
     async function insertBlock() {
         let files = await askForFile();

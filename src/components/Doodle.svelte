@@ -106,11 +106,14 @@
 
     .doodle,
     .drawing {
+        left: 0;
+        top: 0;
         width: 250px;
         height: 230px;
     }
-
+    
     .drawing {
+        position: absolute;
         image-rendering: pixelated;
     }
 </style>

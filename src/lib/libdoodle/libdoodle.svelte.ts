@@ -20,51 +20,6 @@ async function init() {
 
 await init();
 
-type Modify<T, R> = Omit<T, keyof R> & R;
-
-// export type Letter = Modify<JsLetter, {
-//     stationery?: Stationery,
-//     thumbnails: Blob[]
-// }>;
-
-// export type Stationery = Modify<JsStationery, {
-//     background_2d: Blob
-//     background_3d: Blob
-//     mask: Blob
-// }>;
-
-// async function postProcessLetter(jsLetter: JsLetter): Promise<Letter> {
-//     // @ts-ignore
-//     let letter: Letter = jsLetter
-
-//     if (jsLetter.stationery) {
-//         letter.stationery!.background_2d = new Blob([jsLetter.stationery.background_2d], { type: "image/jpeg" })
-//         letter.stationery!.background_3d = new Blob([jsLetter.stationery.background_3d], { type: "image/jpeg" })
-
-//         let canvas = new OffscreenCanvas(256, 256);
-//         let ctx = canvas.getContext("2d");
-//         if (!ctx)
-//             throw new CanvasContextCreationError();
-//         let imgData = new ImageData(256, 256);
-
-//         let pos = 0;
-//         for (let row of jsLetter.stationery.mask) {
-//             for (let color of row) {
-//                 imgData.data[pos + 3] = color * 17;
-//                 pos += 4;
-//             }
-//         }
-
-//         ctx.putImageData(imgData, 0, 0);
-
-//         letter.stationery!.mask = await canvas.convertToBlob();
-//     }
-
-//     letter.thumbnails = jsLetter.thumbnails.map(data => new Blob([data], { type: "image/jpeg" }))
-
-//     return letter;
-// }
-
 export class BPK1File {
     public blocks: BPK1Block[] = $state([])
     public selectedBlock: BPK1Block | null = $state(null);
@@ -99,7 +54,6 @@ export class BPK1File {
         try {
             let file = new BPK1File();
             file.blocks = parse_bpk1(letterData);
-            console.log(file.blocks)
             return file;
         } catch (e) {
             console.warn(e)
@@ -119,32 +73,6 @@ export class BPK1File {
     public selectBlock(block: number) {
         this.selectedBlock = this.blocks[block] ?? null;
     }
-
-    // public async flattenStationery() {
-    //     let stationery = new OffscreenCanvas(250, 230);
-    //     if (this.letter.stationery) {
-    //         let ctx2d = stationery.getContext("2d")!;
-
-    //         let part3d = new OffscreenCanvas(256, 256);
-    //         let partMask = new OffscreenCanvas(256, 256);
-
-    //         let ctx3d = part3d.getContext("2d")!;
-    //         let ctxMask = partMask.getContext("2d")!;
-
-    //         ctx2d.drawImage(await createImageBitmap(this.letter.stationery.background_2d), 0, 0);
-    //         ctx3d.drawImage(await createImageBitmap(this.letter.stationery.background_3d), 0, 0);
-    //         ctxMask.drawImage(await createImageBitmap(this.letter.stationery.mask), 0, 0);
-
-    //         let imgData = ctx3d.getImageData(0, 0, 256, 256);
-    //         let maskData = ctxMask.getImageData(0, 0, 256, 256);
-    //         for (let pos = 3; pos < 256 * 256 * 4; pos += 4) {
-    //             imgData.data[pos] = maskData.data[pos];
-    //         }
-    //         ctx3d.putImageData(imgData, 0, 0);
-    //         ctx2d.drawImage(part3d, 0, 0);
-    //     }
-    //     return stationery;
-    // }
 }
 
 export async function parse_l4_data(src: number[][], width: number, height: number) {
