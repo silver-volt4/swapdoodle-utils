@@ -4,6 +4,8 @@
     import type { SvelteComponent } from "svelte";
     import Unknown from "./blocks/Unknown.svelte";
     import { askForFile } from "../lib/files.svelte";
+    import Icon from "@jamescoyle/svelte-icon";
+    import { mdiPlus, mdiDownload } from "@mdi/js";
 
     const READERS: { [key: string]: { default: () => SvelteComponent } } =
         import.meta.glob(["./blocks/*.svelte", "!./blocks/Unknown.svelte"], {
@@ -14,7 +16,7 @@
         file,
     }: {
         file: BPK1File;
-    } = $props(); 
+    } = $props();
 
     async function insertBlock() {
         let files = await askForFile();
@@ -34,26 +36,46 @@
     }
 </script>
 
-<div class="viewer">
-    <div class="blocks">
-        <div class="title">BPK1 Blocks</div>
+<div class="flex grow">
+    <div class="md:w-70 w-30 flex flex-col shrink-0 shadow-xl bg-zinc-100">
+        <div class="p-3 bg-zinc-300 border-b-2 border-b-zinc-500 font-bold">
+            File options
+        </div>
+        <button
+            class="btn px-3 py-2 text-start hover:bg-zinc-200 flex gap-2"
+            onclick={() => file.downloadDecompressedBpk("export.bpk1")}
+        >
+            <Icon path={mdiDownload} type="mdi" color="black"></Icon>
+            Save (uncompressed BPK1)
+        </button>
+
+        <div class="p-3 bg-zinc-300 border-b-2 border-b-zinc-500 font-bold">
+            BPK1 Blocks
+        </div>
         {#each file.blocks as block, i}
             <button
-                onclick={() => (file.selectBlock(i))}
-                class:active={file.selectedBlock === block}
+                class="btn px-3 py-2 text-start {file.selectedBlock === block
+                    ? 'bg-zinc-400'
+                    : 'hover:bg-zinc-200'} transition"
+                onclick={() => file.selectBlock(i)}
             >
                 {block.name}
             </button>
         {/each}
-        <button onclick={insertBlock}> + INSERT BLOCK </button>
+        <button
+            class="btn px-3 py-2 text-start hover:bg-zinc-200 flex gap-2"
+            onclick={insertBlock}
+        >
+            <Icon path={mdiPlus} type="mdi" color="black"></Icon>
+            Insert block
+        </button>
     </div>
-    <div class="viewerArea">
-        {#if file.selectedBlock === null}
-            Select a block on the left
-        {:else}
+    <div class="grow p-4 overflow-y-auto">
+        {#if file.selectedBlock}
             <div class="heading">
-                Viewing: {file.selectedBlock.name}
-                <button onclick={() => file.downloadBpkBlock(file.selectedBlock!)}
+                <button
+                    class="btn std mb-2"
+                    onclick={() => file.downloadBpkBlock(file.selectedBlock!)}
                     >Save this block</button
                 >
             </div>
@@ -67,55 +89,3 @@
         {/if}
     </div>
 </div>
-
-<style lang="scss">
-    .viewer {
-        flex: 1;
-        overflow: hidden;
-        display: flex;
-        flex-direction: row;
-    }
-
-    .title {
-        margin: 0.5em;
-        font-weight: bold;
-    }
-
-    .blocks {
-        display: flex;
-        flex-direction: column;
-        width: 300px;
-        background-color: white;
-        overflow: auto;
-    }
-
-    .viewerArea {
-        overflow: auto;
-        flex: 1;
-        padding: 1em;
-    }
-
-    .blocks button {
-        padding: 0.5em 1em;
-        background-color: white;
-        border: none;
-        cursor: pointer;
-        font-size: 18px;
-        text-align: start;
-
-        &.active {
-            background-color: aqua;
-        }
-    }
-
-    div.heading {
-        padding: 0.5em 1em;
-        background-color: white;
-        border: none;
-        box-shadow:
-            0 3px 6px rgba(0, 0, 0, 0.16),
-            0 3px 6px rgba(0, 0, 0, 0.23);
-        font-size: 18px;
-        margin-bottom: 1em;
-    }
-</style>

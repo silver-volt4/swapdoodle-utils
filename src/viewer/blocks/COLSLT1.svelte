@@ -1,4 +1,5 @@
 <script lang="ts">
+    import Card from "../../components/Card.svelte";
     import type {
         BPK1Block,
         BPK1File,
@@ -16,6 +17,10 @@
 
     let colors: Colors = $derived(parse_colors(block));
 </script>
+
+<Card style="info" title="About COLSLT1" class="mb-2">
+    COLSLT1 blocks contain the pens used in the doodles (see SHEET1). This includes the name and RGB color.
+</Card>
 
 {#each colors.colors as color}
     <div class="pen">

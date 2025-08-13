@@ -1,8 +1,4 @@
-html {
-    background-image: url("/cloth.png");
-    background-position: center;
-    background-attachment: fixed;
-}
+@import "tailwindcss";
 
 * {
     font-family: Inter, Helvetica, Arial, sans-serif;
@@ -24,8 +20,10 @@ body {
         0 3px 6px rgba(0, 0, 0, 0.23);
 }
 
-button.base {
+.btn {
     cursor: pointer;
-    border: none;
-    background: none;
+}
+
+.btn.std {
+    @apply bg-zinc-200 py-2 px-3 shadow hover:bg-zinc-300 active:bg-zinc-400 transition;
 }

@@ -11,6 +11,7 @@
         parse_colors,
         parse_sheet,
     } from "../../lib/libdoodle/libdoodle.svelte";
+    import Card from "../../components/Card.svelte";
 
     let {
         file,
@@ -29,5 +30,9 @@
         availableColors[0] ? parse_colors(availableColors[0]) : undefined,
     );
 </script>
+
+<Card style="info" title="About SHEET1" class="mb-2">
+    SHEET1 blocks contain doodle data - the position of each stroke, the pen used (see COLSLT1), normal/bold state, 2D/3D state, etc.
+</Card>
 
 <Doodle {sheet} {colors} />
