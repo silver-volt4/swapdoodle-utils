@@ -19,7 +19,8 @@
 </script>
 
 <Card style="info" title="About COLSLT1" class="mb-2">
-    COLSLT1 blocks contain the pens used in the doodles (see SHEET1). This includes the name and RGB color.
+    COLSLT1 blocks contain the pens used in the doodles (see SHEET1). This
+    includes the name and RGB color.
 </Card>
 
 {#each colors.colors as color}

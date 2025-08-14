@@ -7,7 +7,7 @@ use libdoodle::{
         sheet1::Sheet,
     },
     bpk1::{BPK1Block, BPK1Blocks, BPK1File},
-    error::GenericResult,
+    error::{GenericError, GenericResult},
     files::stationery::Stationery,
 };
 use serde::Serialize;
@@ -51,47 +51,38 @@ impl From<MiiData> for MiiPreview {
     }
 }
 
-#[wasm_bindgen]
-pub fn parse_bpk1(bytes: &[u8]) -> Result<Vec<BPK1Block>, JsError> {
-    match BPK1Blocks::new_from_bpk1_bytes(bytes) {
-        Ok(letter) => Ok(letter),
-        Err(e) => Err(JsError::new(format!("{:#?}", e).as_str())),
-    }
+fn create_frontend_error(service_name: &str, error: &str) -> JsError {
+    JsError::new(format!("{} failed: {}", service_name, error).as_str())
 }
 
-// TODO: surely this could be generated somehow?
-// TODO: nicer errors
+#[wasm_bindgen]
+pub fn parse_bpk1(bytes: &[u8]) -> Result<Vec<BPK1Block>, JsError> {
+    BPK1Blocks::new_from_bpk1_bytes(bytes)
+        .map_err(|e| create_frontend_error("BPK1 parser", &e.to_string()))
+}
 
 #[wasm_bindgen]
 pub fn build_bpk1(blocks: Vec<BPK1Block>) -> Result<Vec<u8>, JsError> {
-    match BPK1Blocks::bytes_from_bpk1_blocks(blocks) {
-        Ok(data) => Ok(data.into()),
-        Err(_) => Err(JsError::new("Failed")),
-    }
+    BPK1Blocks::bytes_from_bpk1_blocks(blocks)
+        .map_err(|e| create_frontend_error("BPK1 serializer", &e.to_string()))
 }
 
 #[wasm_bindgen]
 pub fn parse_colors(block: &BPK1Block) -> Result<Colors, JsError> {
-    match Colors::try_from(block.data.as_slice()) {
-        Ok(letter) => Ok(letter),
-        Err(e) => Err(JsError::new(format!("{:#?}", e).as_str())),
-    }
+    Colors::try_from(block.data.as_slice())
+        .map_err(|e| create_frontend_error("COLSLT1 parser", &e.to_string()))
 }
 
 #[wasm_bindgen]
 pub fn parse_sheet(block: &BPK1Block) -> Result<Sheet, JsError> {
-    match Sheet::try_from(block.data.as_slice()) {
-        Ok(letter) => Ok(letter),
-        Err(e) => Err(JsError::new(format!("{:#?}", e).as_str())),
-    }
+    Sheet::try_from(block.data.as_slice())
+        .map_err(|e| create_frontend_error("SHEET1 parser", &e.to_string()))
 }
 
 #[wasm_bindgen]
 pub fn parse_stationery(block: &BPK1Block) -> Result<Stationery, JsError> {
-    match Stationery::try_from(block.data.as_slice()) {
-        Ok(letter) => Ok(letter),
-        Err(e) => Err(JsError::new(format!("{:#?}", e).as_str())),
-    }
+    Stationery::try_from(block.data.as_slice())
+        .map_err(|e| create_frontend_error("STATIN1 parser", &e.to_string()))
 }
 
 fn read_mii_data(block: &BPK1Block) -> GenericResult<MiiData> {
@@ -103,8 +94,7 @@ fn read_mii_data(block: &BPK1Block) -> GenericResult<MiiData> {
 
 #[wasm_bindgen]
 pub fn parse_mii_data(block: &BPK1Block) -> Result<MiiPreview, JsError> {
-    match read_mii_data(block) {
-        Ok(letter) => Ok(letter.into()),
-        Err(e) => Err(JsError::new(format!("{:#?}", e).as_str())),
-    }
+    read_mii_data(block)
+        .map(|v| v.into())
+        .map_err(|e| create_frontend_error("MIISTD1 parser", &e.to_string()))
 }
