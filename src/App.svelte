@@ -10,6 +10,7 @@
         type OpenFile,
         getCurrentFile,
         setCurrentFile,
+        closeCurrentFile,
     } from "./lib/files.svelte";
     import { mdiOpenInNew } from "@mdi/js";
     import Icon from "@jamescoyle/svelte-icon";
@@ -45,10 +46,10 @@
     ondrop={drop}
 >
     <!-- Open files -->
-    <div class="flex w-full bg-green-700 text-white shadow-md z-10">
+    <div class="flex w-full bg-yellow-700 text-white shadow-md z-10">
         <button
             onclick={fileOpen}
-            class="btn p-2 transition flex shrink-0 gap-2 bg-green-700 hover:bg-green-900 border-e-2 border-green-950"
+            class="btn p-2 transition flex shrink-0 gap-2 bg-yellow-700 hover:bg-yellow-900 border-e-2 border-yellow-950"
         >
             <Icon path={mdiOpenInNew} type="mdi" color="white"></Icon>
 
@@ -59,8 +60,8 @@
                 <button
                     onclick={() => setCurrentFile(file)}
                     class="btn p-2 transition {getCurrentFile() === file
-                        ? 'border-solid border-b-2 border-white bg-green-600'
-                        : 'hover:bg-green-900'}"
+                        ? 'border-solid border-b-2 border-white bg-yellow-600'
+                        : 'hover:bg-yellow-900'}"
                 >
                     {file.name}
                 </button>
@@ -71,10 +72,12 @@
     <!-- Viewer -->
     <div class="flex flex-col grow overflow-y-auto">
         {#if getCurrentFile()}
-            <ViewFile file={getCurrentFile()!.file}></ViewFile>
+            <ViewFile file={getCurrentFile()!.file} onclose={closeCurrentFile}>
+
+            </ViewFile>
         {:else}
             <button
-                class="bg-green-100 w-full grow flex flex-col justify-center self-center items-center"
+                class="w-full grow flex flex-col justify-center self-center items-center"
                 onclick={fileOpen}
             >
                 <h1 class="font-bold text-6xl">Swapdoodle Utils</h1>

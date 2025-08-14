@@ -31,5 +31,5 @@ body {
 }
 
 .btn.std {
-    @apply bg-green-200 py-2 px-3 shadow hover:bg-green-300 active:bg-green-400 transition;
+    @apply bg-yellow-200 py-2 px-3 shadow hover:bg-yellow-300 active:bg-yellow-400 transition;
 }

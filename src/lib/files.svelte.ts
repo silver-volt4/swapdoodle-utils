@@ -57,3 +57,21 @@ export function getCurrentFile() {
 export function setCurrentFile(newFile: OpenFile) {
     _currentFile = newFile
 }
+
+export function closeCurrentFile() {
+    let index = files.indexOf(_currentFile!);
+    if (index === -1) {
+        return;
+    }
+
+    files.splice(index, 1);
+    if (files.length === 0) {
+        _currentFile = null;
+        return;
+    }
+    if (files.length <= index) {
+        index -= 1;
+    }
+
+    _currentFile = files[index];
+}

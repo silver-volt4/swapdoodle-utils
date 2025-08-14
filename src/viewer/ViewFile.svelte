@@ -4,7 +4,7 @@
     import Unknown from "./blocks/Unknown.svelte";
     import { askForFile } from "../lib/files.svelte";
     import Icon from "@jamescoyle/svelte-icon";
-    import { mdiPlus, mdiDownload, mdiTrashCan } from "@mdi/js";
+    import { mdiPlus, mdiDownload, mdiTrashCan, mdiClose } from "@mdi/js";
 
     const READERS: { [key: string]: { default: () => SvelteComponent } } =
         import.meta.glob(["./blocks/*.svelte", "!./blocks/Unknown.svelte"], {
@@ -13,8 +13,10 @@
 
     let {
         file,
+        onclose
     }: {
         file: BPK1File;
+        onclose: () => any
     } = $props();
 
     async function insertBlock() {
@@ -36,7 +38,7 @@
 </script>
 
 {#snippet header(label: string)}
-    <div class="p-3 bg-green-300 border-b-2 border-b-green-500 font-bold">
+    <div class="p-3 bg-yellow-200 border-b-2 border-b-yellow-700 font-bold">
         {label}
     </div>
 {/snippet}
@@ -50,8 +52,8 @@
 )}
     <button
         class="btn px-3 py-2 text-start transition flex gap-2 {classes} {active
-            ? 'bg-green-400 hover:bg-green-500'
-            : 'hover:bg-green-200'}"
+            ? 'bg-yellow-400 hover:bg-yellow-500'
+            : 'hover:bg-yellow-300'}"
         {onclick}
     >
         {#if icon}
@@ -62,12 +64,17 @@
 {/snippet}
 
 <div class="flex grow">
-    <div class="md:w-70 w-30 flex flex-col shrink-0 shadow-xl bg-green-100">
+    <div class="md:w-70 w-30 flex flex-col shrink-0 shadow-xl bg-yellow-100">
         {@render header("File options")}
         {@render button(
             "Save BPK1 (uncompressed)",
             () => file.downloadDecompressedBpk("export.bpk1"),
             mdiDownload,
+        )}
+        {@render button(
+            "Close file",
+            onclose,
+            mdiClose,
         )}
 
         {@render header("BPK1 Blocks")}

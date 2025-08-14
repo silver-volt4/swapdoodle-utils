@@ -14,6 +14,7 @@
     import BlobImage from "../../components/BlobImage.svelte";
     import L4Image from "../../components/L4Image.svelte";
     import { openNewFile } from "../../lib/files.svelte";
+    import Card from "../../components/Card.svelte";
 
     let {
         file,
@@ -32,12 +33,21 @@
     );
 </script>
 
-<div>
-    <b>STATIN1</b> blocks contain Stationery data.
-</div>
-<div>
-    <b>Hint</b>: STATIN1 itself is a BPK1 archive. <button onclick={() => {openNewFile(block.data)}}>Open in new tab</button>
-</div>
+<Card style="info" title="About THUMB2" class="mb-2">
+    STATIN1 blocks contain the stationery of the note.
+</Card>
+
+<Card style="info" title="By the way..." class="mb-2">
+    STATIN1 blocks themselves are BPK1 archives.
+    <div class="mt-2">
+        <button
+            class="btn std"
+            onclick={() => {
+                openNewFile(block.data);
+            }}>Open in new tab</button
+        >
+    </div>
+</Card>
 
 <BlobImage src={background_2d} />
 <BlobImage src={background_3d} />

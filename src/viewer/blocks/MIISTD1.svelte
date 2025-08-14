@@ -22,7 +22,7 @@
     MIISTD1 blocks contain data about the sender's Mii.
 </Card>
 
-<img class="bg-green-200 rounded-full" src={miidata.url} alt="Sender's Mii"/>
+<img class="bg-yellow-200 rounded-full" src={miidata.url} alt="Sender's Mii"/>
 <div class="text-xs my-2">
     <b>Note:</b> Mii images are rendered using Nintendo's Mii Studio API.<br>
     If the image does not appear, you are either offline, or Mii Studio is down.

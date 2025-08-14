@@ -36,7 +36,7 @@
     );
 </script>
 
-<div class="shadow {className}">
+<div class="bg-zinc-50 shadow {className}">
     <div class="py-2 px-3 {bgColor} flex gap-2">
         <Icon path={iconPath} type="mdi" color="var({iconColor})"></Icon>
         {title}
