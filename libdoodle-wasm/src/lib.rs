@@ -1,9 +1,16 @@
-use std::{collections::HashMap, f64::consts::E, ffi::CString, io::Read, mem, str::FromStr};
+use std::{collections::HashMap, io::Read};
 
 use libdoodle::{
-    blocks::{colslt1::Colors, miistd1::{MiiData, MiiDataBytes}, sheet1::Sheet}, bpk1::{BPK1Block, BPK1Blocks, BPK1File}, error::GenericResult, files::stationery::Stationery
+    blocks::{
+        colslt1::Colors,
+        miistd1::{MiiData, MiiDataBytes},
+        sheet1::Sheet,
+    },
+    bpk1::{BPK1Block, BPK1Blocks, BPK1File},
+    error::GenericResult,
+    files::stationery::Stationery,
 };
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use serde_bytes::ByteBuf;
 use tsify::{Tsify, declare};
 use wasm_bindgen::prelude::*;
@@ -87,7 +94,7 @@ pub fn parse_stationery(block: &BPK1Block) -> Result<Stationery, JsError> {
     }
 }
 
-fn read_mii_data(block: &BPK1Block) -> GenericResult<MiiData>{
+fn read_mii_data(block: &BPK1Block) -> GenericResult<MiiData> {
     let mut mii_data: MiiDataBytes = [0; 0x5C];
     let mut slice: &[u8] = &block.data;
     slice.read(&mut mii_data)?;
