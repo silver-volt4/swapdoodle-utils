@@ -49,7 +49,7 @@
     <div class="flex w-full bg-yellow-700 text-white shadow-md z-10">
         <button
             onclick={fileOpen}
-            class="btn p-2 transition flex shrink-0 gap-2 bg-yellow-700 hover:bg-yellow-900 border-e-2 border-yellow-950"
+            class="btn p-2 pr-3 transition flex shrink-0 gap-2 bg-yellow-700 hover:bg-yellow-900 border-e-2 border-yellow-950"
         >
             <Icon path={mdiOpenInNew} type="mdi" color="white"></Icon>
 

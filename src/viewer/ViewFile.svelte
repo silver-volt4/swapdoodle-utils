@@ -5,6 +5,7 @@
     import { askForFile } from "../lib/files.svelte";
     import Icon from "@jamescoyle/svelte-icon";
     import { mdiPlus, mdiDownload, mdiTrashCan, mdiClose } from "@mdi/js";
+    import { pushDialog } from "../lib/dialog.svelte";
 
     const READERS: { [key: string]: { default: () => SvelteComponent } } =
         import.meta.glob(["./blocks/*.svelte", "!./blocks/Unknown.svelte"], {
@@ -13,10 +14,10 @@
 
     let {
         file,
-        onclose
+        onclose,
     }: {
         file: BPK1File;
-        onclose: () => any
+        onclose: () => any;
     } = $props();
 
     async function insertBlock() {
@@ -33,6 +34,21 @@
                     data: new Uint8Array(await selected.arrayBuffer()),
                 });
             }
+        }
+    }
+
+    async function close() {
+        let result = await pushDialog({
+            title: "Closing file",
+            message:
+                "Do you really want to close this file?\nAll unsaved changes will be lost.",
+            buttons: [
+                { id: "yes", label: "Yes" },
+                { id: "no", label: "No" },
+            ],
+        });
+        if (result === "yes") {
+            onclose();
         }
     }
 </script>
@@ -71,11 +87,7 @@
             () => file.downloadDecompressedBpk("export.bpk1"),
             mdiDownload,
         )}
-        {@render button(
-            "Close file",
-            onclose,
-            mdiClose,
-        )}
+        {@render button("Close file", close, mdiClose)}
 
         {@render header("BPK1 Blocks")}
         {#each file.blocks as block, i}
@@ -85,7 +97,7 @@
                     () => file.selectBlock(i),
                     null,
                     file.selectedBlock === block,
-                    "grow"
+                    "grow",
                 )}
                 {@render button(
                     "",
