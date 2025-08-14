@@ -74,13 +74,17 @@ export class BPK1File {
         this.selectedBlock = this.blocks[block] ?? null;
     }
 
-    public deleteBlock(block: number) {
-        if (this.blocks.splice(block, 1)[0] === this.selectedBlock) {
-            if (this.blocks.length < block) {
-                block -= 1;
-            }
-            this.selectedBlock = this.blocks[block];
+    public deleteSelectedBlock(): any {
+        if (!this.selectedBlock) {
+            return;
         }
+
+        let block = this.blocks.indexOf(this.selectedBlock);
+        this.blocks.splice(block, 1)
+        if (this.blocks.length <= block) {
+            block = this.blocks.length - 1;
+        }
+        this.selectedBlock = this.blocks[block];
     }
 }
 

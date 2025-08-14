@@ -114,23 +114,17 @@
                 }}
             >
                 <div
-                    class="flex"
                     draggable="true"
                     ondragstart={(e) => (dragIndex = i)}
                     role="listitem"
                 >
                     <button
-                        class="{buttonClass(file.selectedBlock === block)} grow"
+                        class="{buttonClass(
+                            file.selectedBlock === block,
+                        )} w-full"
                         onclick={() => file.selectBlock(i)}
                     >
                         {block.name}
-                    </button>
-                    <button
-                        class={buttonClass(file.selectedBlock === block)}
-                        onclick={() => file.deleteBlock(i)}
-                    >
-                        <Icon path={mdiTrashCan} type="mdi" color="black"
-                        ></Icon>
                     </button>
                 </div>
             </DropTarget>
@@ -142,12 +136,21 @@
     </div>
     <div class="grow p-4 overflow-y-auto">
         {#if file.selectedBlock}
-            <div class="heading">
+            <div class="flex flex-wrap gap-2 mb-2">
                 <button
-                    class="btn std mb-2"
+                    class="btn std flex gap-2"
                     onclick={() => file.downloadBpkBlock(file.selectedBlock!)}
-                    >Save this block</button
                 >
+                    <Icon path={mdiDownload} type="mdi" color="black"></Icon>
+                    Save block
+                </button>
+                <button
+                    class="btn std flex gap-2"
+                    onclick={() => file.deleteSelectedBlock()}
+                >
+                    <Icon path={mdiTrashCan} type="mdi" color="black"></Icon>
+                    Delete block
+                </button>
             </div>
             {@const Reader =
                 READERS[`./blocks/${file.selectedBlock.name}.svelte`]?.default}
