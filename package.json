@@ -23,7 +23,6 @@
     "@jamescoyle/svelte-icon": "^0.1.1",
     "@mdi/js": "^7.4.47",
     "@tailwindcss/vite": "^4.1.11",
-    "base64-arraybuffer": "^1.0.2",
     "tailwindcss": "^4.1.11"
   }
 }
