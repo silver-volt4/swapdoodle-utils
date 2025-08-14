@@ -6,11 +6,14 @@
     import Icon from "@jamescoyle/svelte-icon";
     import { mdiPlus, mdiDownload, mdiTrashCan, mdiClose } from "@mdi/js";
     import { pushDialog } from "../lib/dialog.svelte";
+    import DropTarget from "../components/DropTarget.svelte";
 
     const READERS: { [key: string]: { default: () => SvelteComponent } } =
         import.meta.glob(["./blocks/*.svelte", "!./blocks/Unknown.svelte"], {
             eager: true,
         });
+
+    let dragIndex: number | undefined = $state();
 
     let {
         file,
@@ -51,6 +54,34 @@
             onclose();
         }
     }
+
+    function buttonClass(active: boolean) {
+        return (
+            "btn px-3 py-2 text-start transition flex gap-2 " +
+            (active
+                ? "bg-yellow-400 hover:bg-yellow-500"
+                : "hover:bg-yellow-300")
+        );
+    }
+
+    function reorderFile(i: number, pos: number) {
+        if (dragIndex === undefined) {
+            return;
+        }
+        if (i === dragIndex) {
+            return;
+        }
+        let target = file.blocks[i];
+        let move = file.blocks.splice(dragIndex, 1)[0];
+        i = file.blocks.indexOf(target);
+        i += pos === 1 ? 0 : 1;
+        if (i < 0) {
+            i = 0;
+        } else if (i >= file.blocks.length) {
+            i = file.blocks.length;
+        }
+        file.blocks.splice(i, 0, move);
+    }
 </script>
 
 {#snippet header(label: string)}
@@ -59,55 +90,55 @@
     </div>
 {/snippet}
 
-{#snippet button(
-    label: string,
-    onclick: (e: Event) => any,
-    icon: string | null = null,
-    active: boolean = false,
-    classes?: string,
-)}
-    <button
-        class="btn px-3 py-2 text-start transition flex gap-2 {classes} {active
-            ? 'bg-yellow-400 hover:bg-yellow-500'
-            : 'hover:bg-yellow-300'}"
-        {onclick}
-    >
-        {#if icon}
-            <Icon path={icon} type="mdi" color="black"></Icon>
-        {/if}
-        {label}
-    </button>
-{/snippet}
-
 <div class="flex grow">
     <div class="md:w-70 w-30 flex flex-col shrink-0 shadow-xl bg-yellow-100">
         {@render header("File options")}
-        {@render button(
-            "Save BPK1 (uncompressed)",
-            () => file.downloadDecompressedBpk("export.bpk1"),
-            mdiDownload,
-        )}
-        {@render button("Close file", close, mdiClose)}
+
+        <button
+            class={buttonClass(false)}
+            onclick={() => file.downloadDecompressedBpk("export.bpk1")}
+        >
+            <Icon path={mdiDownload} type="mdi" color="black"></Icon>
+            Save BPK1 (uncompressed)
+        </button>
+        <button class={buttonClass(false)} onclick={close}>
+            <Icon path={mdiClose} type="mdi" color="black"></Icon>
+            Close file
+        </button>
 
         {@render header("BPK1 Blocks")}
-        {#each file.blocks as block, i}
-            <div class="flex">
-                {@render button(
-                    block.name,
-                    () => file.selectBlock(i),
-                    null,
-                    file.selectedBlock === block,
-                    "grow",
-                )}
-                {@render button(
-                    "",
-                    () => file.deleteBlock(i),
-                    mdiTrashCan,
-                    file.selectedBlock === block,
-                )}
-            </div>
+        {#each file.blocks as block, i (block)}
+            <DropTarget
+                ondrop={(pos) => {
+                    reorderFile(i, pos);
+                }}
+            >
+                <div
+                    class="flex"
+                    draggable="true"
+                    ondragstart={(e) => (dragIndex = i)}
+                    role="listitem"
+                >
+                    <button
+                        class="{buttonClass(file.selectedBlock === block)} grow"
+                        onclick={() => file.selectBlock(i)}
+                    >
+                        {block.name}
+                    </button>
+                    <button
+                        class={buttonClass(file.selectedBlock === block)}
+                        onclick={() => file.deleteBlock(i)}
+                    >
+                        <Icon path={mdiTrashCan} type="mdi" color="black"
+                        ></Icon>
+                    </button>
+                </div>
+            </DropTarget>
         {/each}
-        {@render button("Insert block", insertBlock, mdiPlus)}
+        <button class={buttonClass(false)} onclick={insertBlock}>
+            <Icon path={mdiPlus} type="mdi" color="black"></Icon>
+            Insert block
+        </button>
     </div>
     <div class="grow p-4 overflow-y-auto">
         {#if file.selectedBlock}
