@@ -39,30 +39,33 @@
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="w-dvw h-dvh flex flex-col bg-zinc-50" ondragover={dragOver} ondrop={drop}>
+<div
+    class="w-dvw h-dvh flex flex-col bg-zinc-50"
+    ondragover={dragOver}
+    ondrop={drop}
+>
     <!-- Open files -->
-    <div class="flex w-full bg-green-500 text-white">
-        <div class="flex overflow-x-scroll grow">
-            {#each files as file}
-                <button
-                    onclick={() => setCurrentFile(file)}
-                    class="btn p-2 transition hover:bg-green-700 {getCurrentFile() ===
-                    file
-                        ? 'border-solid border-b-2 border-white bg-green-600'
-                        : ''}"
-                >
-                    {file.name}
-                </button>
-            {/each}
-        </div>
+    <div class="flex w-full bg-green-700 text-white shadow-md z-10">
         <button
             onclick={fileOpen}
-            class="btn p-2 transition flex shrink-0 gap-2 bg-green-600 hover:bg-green-700"
+            class="btn p-2 transition flex shrink-0 gap-2 bg-green-700 hover:bg-green-900 border-e-2 border-green-950"
         >
             <Icon path={mdiOpenInNew} type="mdi" color="white"></Icon>
 
             Open file
         </button>
+        <div class="flex overflow-x-scroll grow">
+            {#each files as file}
+                <button
+                    onclick={() => setCurrentFile(file)}
+                    class="btn p-2 transition {getCurrentFile() === file
+                        ? 'border-solid border-b-2 border-white bg-green-600'
+                        : 'hover:bg-green-900'}"
+                >
+                    {file.name}
+                </button>
+            {/each}
+        </div>
     </div>
 
     <!-- Viewer -->
@@ -70,10 +73,15 @@
         {#if getCurrentFile()}
             <ViewFile file={getCurrentFile()!.file}></ViewFile>
         {:else}
-            <button class="bg-green-100 w-full grow flex flex-col justify-center self-center items-center" onclick={fileOpen}>
+            <button
+                class="bg-green-100 w-full grow flex flex-col justify-center self-center items-center"
+                onclick={fileOpen}
+            >
                 <h1 class="font-bold text-6xl">Swapdoodle Utils</h1>
                 <p class="mb-4">version: {packageFile.version}</p>
-                <p class="text-lg">Click here or drag a file onto this page to open it</p>
+                <p class="text-lg">
+                    Click here or drag a file onto this page to open it
+                </p>
             </button>
         {/if}
     </div>
