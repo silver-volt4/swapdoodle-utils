@@ -73,6 +73,15 @@ export class BPK1File {
     public selectBlock(block: number) {
         this.selectedBlock = this.blocks[block] ?? null;
     }
+
+    public deleteBlock(block: number) {
+        if (this.blocks.splice(block, 1)[0] === this.selectedBlock) {
+            if (this.blocks.length < block) {
+                block -= 1;
+            }
+            this.selectedBlock = this.blocks[block];
+        }
+    }
 }
 
 export async function parse_l4_data(src: number[][], width: number, height: number) {

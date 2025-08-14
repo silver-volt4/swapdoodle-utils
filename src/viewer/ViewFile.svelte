@@ -1,12 +1,10 @@
 <script lang="ts">
     import { BPK1File } from "../lib/libdoodle/libdoodle.svelte";
-    import type { BPK1Block } from "../lib/libdoodle/wasm/libdoodle_wasm";
     import type { SvelteComponent } from "svelte";
     import Unknown from "./blocks/Unknown.svelte";
     import { askForFile } from "../lib/files.svelte";
     import Icon from "@jamescoyle/svelte-icon";
-    import { mdiPlus, mdiDownload } from "@mdi/js";
-    import { pushDialog } from "../lib/dialog.svelte";
+    import { mdiPlus, mdiDownload, mdiTrashCan } from "@mdi/js";
 
     const READERS: { [key: string]: { default: () => SvelteComponent } } =
         import.meta.glob(["./blocks/*.svelte", "!./blocks/Unknown.svelte"], {
@@ -48,10 +46,11 @@
     onclick: (e: Event) => any,
     icon: string | null = null,
     active: boolean = false,
+    classes?: string,
 )}
     <button
-        class="btn px-3 py-2 text-start transition flex gap-2 {active
-            ? 'bg-green-400'
+        class="btn px-3 py-2 text-start transition flex gap-2 {classes} {active
+            ? 'bg-green-400 hover:bg-green-500'
             : 'hover:bg-green-200'}"
         {onclick}
     >
@@ -65,19 +64,29 @@
 <div class="flex grow">
     <div class="md:w-70 w-30 flex flex-col shrink-0 shadow-xl bg-green-100">
         {@render header("File options")}
-        {@render button("Save BPK1 (uncompressed)", () =>
-            file.downloadDecompressedBpk("export.bpk1"),
-            mdiDownload
+        {@render button(
+            "Save BPK1 (uncompressed)",
+            () => file.downloadDecompressedBpk("export.bpk1"),
+            mdiDownload,
         )}
 
         {@render header("BPK1 Blocks")}
         {#each file.blocks as block, i}
-            {@render button(
-                block.name,
-                () => file.selectBlock(i),
-                null,
-                file.selectedBlock === block,
-            )}
+            <div class="flex">
+                {@render button(
+                    block.name,
+                    () => file.selectBlock(i),
+                    null,
+                    file.selectedBlock === block,
+                    "grow"
+                )}
+                {@render button(
+                    "",
+                    () => file.deleteBlock(i),
+                    mdiTrashCan,
+                    file.selectedBlock === block,
+                )}
+            </div>
         {/each}
         {@render button("Insert block", insertBlock, mdiPlus)}
     </div>

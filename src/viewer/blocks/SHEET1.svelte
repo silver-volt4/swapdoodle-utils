@@ -4,6 +4,7 @@
     import type {
         BPK1Block,
         BPK1File,
+        Color,
         Colors,
         Sheet,
     } from "../../lib/libdoodle/libdoodle.svelte";
@@ -26,13 +27,36 @@
     );
     let sheet: Sheet = $derived(parse_sheet(block));
 
-    let colors = $derived(
-        availableColors[0] ? parse_colors(availableColors[0]) : undefined,
+    let selectedColorsBlock: BPK1Block | null = $state(null);
+
+    let backupColors: Colors = {
+        colors: [
+            { r: 255, g: 0, b: 0, a: 255, id: 0, name: "" },
+            { r: 255, g: 255, b: 0, a: 255, id: 0, name: "" },
+            { r: 0, g: 255, b: 255, a: 255, id: 0, name: "" },
+            { r: 0, g: 255, b: 255, a: 255, id: 0, name: "" },
+            { r: 0, g: 255, b: 0, a: 255, id: 0, name: "" },
+        ],
+    };
+
+    let colors: Colors | null = $derived(
+        selectedColorsBlock ? parse_colors(selectedColorsBlock) : backupColors,
     );
+
+    $effect(() => {
+        selectedColorsBlock = availableColors ? availableColors[0] : null;
+    });
 </script>
 
 <Card style="info" title="About SHEET1" class="mb-2">
-    SHEET1 blocks contain doodle data - the position of each stroke, the pen used (see COLSLT1), normal/bold state, 2D/3D state, etc.
+    SHEET1 blocks contain doodle data - the position of each stroke, the pen
+    used (see COLSLT1), normal/bold state, 2D/3D state, etc.
 </Card>
+{#if !availableColors.length}
+    <Card style="warning" title="No colors found!" class="mb-2">
+        The currently opened file does not contain a COLSLT1 block, so no colors
+        can be displayed. A backup set of colors has been used instead.
+    </Card>
+{/if}
 
 <Doodle {sheet} {colors} />

@@ -40,7 +40,7 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-    class="w-dvw h-dvh flex flex-col bg-zinc-50"
+    class="w-dvw h-dvh flex flex-col"
     ondragover={dragOver}
     ondrop={drop}
 >
