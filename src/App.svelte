@@ -7,7 +7,6 @@
         askForFile,
         files,
         openNewFile,
-        type OpenFile,
         getCurrentFile,
         setCurrentFile,
         closeCurrentFile,
@@ -63,7 +62,7 @@
                         ? 'border-solid border-b-2 border-white bg-yellow-600'
                         : 'hover:bg-yellow-900'}"
                 >
-                    {file.name}
+                    {file.fileName}
                 </button>
             {/each}
         </div>
@@ -72,7 +71,7 @@
     <!-- Viewer -->
     <div class="flex flex-col grow overflow-y-auto">
         {#if getCurrentFile()}
-            <ViewFile file={getCurrentFile()!.file} onclose={closeCurrentFile}>
+            <ViewFile file={getCurrentFile()!} onclose={closeCurrentFile}>
 
             </ViewFile>
         {:else}

@@ -24,6 +24,16 @@ pub fn init() {
 }
 
 #[wasm_bindgen]
+pub fn compress_lz10(bytes: &[u8]) -> Vec<u8> {
+    libdoodle::lzss::compress_lz10_from_slice(bytes).unwrap()
+}
+
+#[wasm_bindgen]
+pub fn compress_lz11(bytes: &[u8], max_repeat_size: u32) -> Vec<u8> {
+    libdoodle::lzss::compress_lz11_from_slice(bytes, max_repeat_size).unwrap()
+}
+
+#[wasm_bindgen]
 pub fn decompress(bytes: &[u8]) -> Vec<u8> {
     libdoodle::lzss::decompress_from_slice(bytes).unwrap()
 }

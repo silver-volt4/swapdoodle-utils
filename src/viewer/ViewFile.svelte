@@ -7,6 +7,7 @@
     import { mdiPlus, mdiDownload, mdiTrashCan, mdiClose } from "@mdi/js";
     import { pushDialog } from "../lib/dialog.svelte";
     import DropTarget from "../components/DropTarget.svelte";
+    import HexView from "../components/HexView.svelte";
 
     const READERS: { [key: string]: { default: () => SvelteComponent } } =
         import.meta.glob(["./blocks/*.svelte", "!./blocks/Unknown.svelte"], {
@@ -96,10 +97,17 @@
 
         <button
             class={buttonClass(false)}
-            onclick={() => file.downloadDecompressedBpk("export.bpk1")}
+            onclick={() => file.downloadDecompressedBpk()}
         >
             <Icon path={mdiDownload} type="mdi" color="black"></Icon>
             Save BPK1 (uncompressed)
+        </button>
+        <button
+            class={buttonClass(false)}
+            onclick={() => file.downloadCompressedBpk()}
+        >
+            <Icon path={mdiDownload} type="mdi" color="black"></Icon>
+            Save BPK1 (compressed)
         </button>
         <button class={buttonClass(false)} onclick={close}>
             <Icon path={mdiClose} type="mdi" color="black"></Icon>
@@ -115,7 +123,13 @@
             >
                 <div
                     draggable="true"
-                    ondragstart={(e) => (dragIndex = i)}
+                    ondragstart={(e) => {
+                        dragIndex = i;
+                        e.dataTransfer?.setData(
+                            "application/octet-stream",
+                            "asdf",
+                        );
+                    }}
                     role="listitem"
                 >
                     <button
@@ -152,13 +166,16 @@
                     Delete block
                 </button>
             </div>
+            
             {@const Reader =
                 READERS[`./blocks/${file.selectedBlock.name}.svelte`]?.default}
             {#if Reader}
                 <Reader {file} block={file.selectedBlock} />
             {:else}
-                <Unknown {file} block={file.selectedBlock} />
+                <Unknown />
             {/if}
+
+            <HexView data={file.selectedBlock.data}></HexView>
         {/if}
     </div>
 </div>

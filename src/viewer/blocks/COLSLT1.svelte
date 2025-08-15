@@ -24,29 +24,29 @@
 </Card>
 
 {#each colors.colors as color}
-    <div class="pen">
+    <div class="flex items-center gap-2 mb-2 font-bold">
         <div
-            class="sample"
-            style="background-color: rgb({color.r},{color.g},{color.b})"
-        ></div>
+            class="w-8 h-8 rounded-full overflow-hidden relative"
+            style="background-color: rgba({color.primary.r},{color.primary
+                .g},{color.primary.b},{color.primary.a})"
+        >
+            <div
+                class="w-[50%] h-[50%] absolute bottom-0"
+                style="background-color: rgba({color.extra1.r},{color.extra1
+                    .g},{color.extra1.b},{color.extra1.a})"
+            ></div>
+            <div
+                class="w-[50%] h-[50%] absolute right-0 top-0"
+                style="background-color: rgba({color.extra2.r},{color.extra2
+                    .g},{color.extra2.b},{color.extra2.a})"
+            ></div>
+            <div
+                class="w-[50%] h-[50%] absolute right-0 bottom-0"
+                style="background-color: rgba({color.extra3.r},{color.extra3
+                    .g},{color.extra3.b},{color.extra3.a})"
+            ></div>
+        </div>
 
         {color.name}
     </div>
 {/each}
-
-<style lang="scss">
-    .pen {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 10px;
-        font-weight: bold;
-
-        .sample {
-            width: 30px;
-            height: 30px;
-            display: inline-block;
-            border-radius: 50%;
-        }
-    }
-</style>

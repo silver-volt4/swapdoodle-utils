@@ -10,6 +10,7 @@ import loadWasm, {
     type Colors,
     type BPK1Block,
     parse_stationery,
+    compress_lz11,
 } from "./wasm/libdoodle_wasm";
 export * from "./wasm/libdoodle_wasm";
 
@@ -21,6 +22,7 @@ async function init() {
 await init();
 
 export class BPK1File {
+    public fileName: string = $state("unnamed.bpk1");
     public blocks: BPK1Block[] = $state([])
     public selectedBlock: BPK1Block | null = $state(null);
 
@@ -62,8 +64,12 @@ export class BPK1File {
         }
     }
 
-    public downloadDecompressedBpk(fileName: string) {
-        invokeDownload(build_bpk1(this.blocks), fileName);
+    public downloadDecompressedBpk() {
+        invokeDownload(build_bpk1(this.blocks), this.fileName);
+    }
+
+    public downloadCompressedBpk() {
+        invokeDownload(compress_lz11(build_bpk1(this.blocks), 20000), this.fileName);
     }
 
     public downloadBpkBlock(block: BPK1Block) {

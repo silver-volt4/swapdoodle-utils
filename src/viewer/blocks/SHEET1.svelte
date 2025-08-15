@@ -31,11 +31,12 @@
 
     let backupColors: Colors = {
         colors: [
-            { r: 255, g: 0, b: 0, a: 255, id: 0, name: "" },
-            { r: 255, g: 255, b: 0, a: 255, id: 0, name: "" },
-            { r: 0, g: 255, b: 255, a: 255, id: 0, name: "" },
-            { r: 0, g: 255, b: 255, a: 255, id: 0, name: "" },
-            { r: 0, g: 255, b: 0, a: 255, id: 0, name: "" },
+            // ignore extra colors for now
+            { primary: { r: 255, g: 0, b: 0, a: 255 }, id: 0, name: "" } as Color,
+            { primary: { r: 255, g: 0, b: 0, a: 255 }, id: 0, name: "" } as Color,
+            { primary: { r: 255, g: 0, b: 0, a: 255 }, id: 0, name: "" } as Color,
+            { primary: { r: 255, g: 0, b: 0, a: 255 }, id: 0, name: "" } as Color,
+            { primary: { r: 255, g: 0, b: 0, a: 255 }, id: 0, name: "" } as Color,
         ],
     };
 

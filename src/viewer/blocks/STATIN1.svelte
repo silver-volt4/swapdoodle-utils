@@ -43,7 +43,7 @@
         <button
             class="btn std"
             onclick={() => {
-                openNewFile(block.data);
+                openNewFile(block.data, `${file.fileName} - STATIN1.bpk` );
             }}>Open in new tab</button
         >
     </div>

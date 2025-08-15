@@ -4,18 +4,8 @@ import { warn } from "./toast.svelte";
 const fileInput: HTMLInputElement = document.createElement("input")
 fileInput.type = "file"
 
-export class OpenFile {
-    file: BPK1File;
-    name: string;
-
-    constructor(file: BPK1File, name: string) {
-        this.file = file;
-        this.name = name;
-    }
-}
-
-export let files: OpenFile[] = $state([]);
-let _currentFile: OpenFile | null = $state(null);
+export let files: BPK1File[] = $state([]);
+let _currentFile: BPK1File | null = $state(null);
 
 export function askForFile(): Promise<FileList | null> {
     return new Promise((resolve) => {
@@ -28,19 +18,21 @@ export function askForFile(): Promise<FileList | null> {
 
 export async function openNewFile(file: File | Uint8Array<ArrayBufferLike>, name?: string) {
     try {
-        let letter;
+        let bpk1File;
         if (file instanceof File) {
-            letter = await BPK1File.readFile(file);
-            name ??= file.name
+            name ??= file.name;
+            bpk1File = await BPK1File.readFile(file);
         }
         else {
-            letter = await BPK1File.readUint8Array(file);
-            name ??= "(unnamed)"
+            bpk1File = await BPK1File.readUint8Array(file);
         }
 
-        let newFile = new OpenFile(letter, name)
-        files.push(newFile);
-        setCurrentFile(newFile);
+        if(name) {
+            bpk1File.fileName = name;
+        }
+
+        files.push(bpk1File);
+        setCurrentFile(bpk1File);
     } catch (e) {
         let message = (e as Partial<Error>)?.message;
         warn({
@@ -54,7 +46,7 @@ export function getCurrentFile() {
     return _currentFile
 }
 
-export function setCurrentFile(newFile: OpenFile) {
+export function setCurrentFile(newFile: BPK1File) {
     _currentFile = newFile
 }
 

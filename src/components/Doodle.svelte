@@ -27,7 +27,7 @@
     function getColor(index: number) {
         let color = colors?.colors[index];
         if (!color) return "rgba(0,0,0,255)";
-        return `rgb(${color.r} ${color.g} ${color.b})`;
+        return `rgb(${color.primary.r} ${color.primary.g} ${color.primary.b})`;
     }
 
     async function draw() {
